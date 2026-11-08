@@ -218,14 +218,16 @@ function drawMenuButton(b, label){
   ctx.restore();
 }
 function drawShareButton(){
-  // below the game-over card, centered
+  // below the game-over card, centered — same cream style as the other
+  // menu buttons so the page doesn't show two stacked Xs (the black
+  // button + the 𝕏 glyph in the label).
   ctx.save();
   ctx.translate(SHARE_BTN.x + SHARE_BTN.w/2, SHARE_BTN.y + SHARE_BTN.h/2);
-  ctx.fillStyle='#000000'; // X black
+  ctx.fillStyle='#fffbe9';
   ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3;
   rr(-SHARE_BTN.w/2, -SHARE_BTN.h/2, SHARE_BTN.w, SHARE_BTN.h, 10);
   ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#fff';
+  ctx.fillStyle='#3d2b14';
   ctx.font='bold 17px Arial, sans-serif';
   ctx.textAlign='center';
   ctx.fillText('𝕏 Share on X', 0, 6);
