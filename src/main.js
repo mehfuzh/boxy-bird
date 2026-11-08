@@ -82,6 +82,7 @@ canvas.addEventListener('pointermove', e => {
 });
 canvas.addEventListener('pointerleave', () => { canvas.style.cursor = 'default'; });
 window.addEventListener('keydown', e => {
+  if (e.code==='Escape' && state==='dead'){ e.preventDefault(); reset(); state='splash'; return; }
   if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){ e.preventDefault(); flap(); }
 });
 
@@ -181,8 +182,8 @@ function drawGround(){
   }
   ctx.restore();
 }
-function drawBox(){
-  const s=BOX_SIZE;
+function drawBox(size=BOX_SIZE){
+  const s=size;
   ctx.save(); ctx.translate(BOX_X, box.y); ctx.rotate(box.rot);
   rr(-s/2,-s/2,s,s,7);
   ctx.fillStyle='#D9A15E'; ctx.fill();
@@ -242,7 +243,9 @@ function draw(){
     ctx.arc(c.x-c.s*0.45,c.y+4,c.s*0.32,0,Math.PI*2);
     ctx.fill();
   }
-  drawPipes(); drawGround(); drawBox();
+  drawPipes(); drawGround();
+  // bigger box on the start page; gameplay box keeps BOX_SIZE
+  if (state!=='splash') drawBox(state==='start' ? 64 : BOX_SIZE);
 
   ctx.textAlign='center';
   if (state==='splash'){
@@ -259,7 +262,7 @@ function draw(){
     // tiny credit, top-right corner of the sky
     ctx.font='10px Arial, sans-serif';
     ctx.fillStyle='rgba(61,43,20,0.55)'; ctx.textAlign='right';
-    ctx.fillText('powered by smartloop.ai', W-10, 24);
+    ctx.fillText('powered by ドーセント', W-10, 24);
     ctx.textAlign='center';
     if (hint) hint.textContent='';
   } else if (state==='start'){
