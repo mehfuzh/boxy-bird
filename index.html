@@ -137,7 +137,13 @@ canvas.addEventListener('pointermove', e => {
 });
 canvas.addEventListener('pointerleave', () => { canvas.style.cursor = 'default'; });
 window.addEventListener('keydown', e => {
-  if (e.code==='Escape' && state==='dead'){ e.preventDefault(); reset(); state='splash'; return; }
+  if (e.code==='Escape'){
+    e.preventDefault();
+    if (state==='dead'){ reset(); state='splash'; return; }
+    if (state==='splash'){ state='start'; return; }
+    if (state==='start'){ state='splash'; return; }
+    return;
+  }
   if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){ e.preventDefault(); flap(); }
 });
 
@@ -252,10 +258,11 @@ function drawBox(size=BOX_SIZE){
   ctx.beginPath(); ctx.arc(-8,ey,5,0,Math.PI*2); ctx.arc(8,ey,5,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#222';
   ctx.beginPath(); ctx.arc(-7,ey+1,2.2,0,Math.PI*2); ctx.arc(9,ey+1,2.2,0,Math.PI*2); ctx.fill();
-  const sy=ey+11;
-  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(-12,sy); ctx.quadraticCurveTo(0,sy+7,12,sy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(15,sy+1); ctx.lineTo(10,sy-3); ctx.lineTo(10,sy+4);
+  const r = s / BOX_SIZE;
+  const sy=ey+11*r;
+  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3*r; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-12*r,sy); ctx.quadraticCurveTo(0,sy+7*r,12*r,sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(15*r,sy+1*r); ctx.lineTo(10*r,sy-3*r); ctx.lineTo(10*r,sy+4*r);
   ctx.closePath(); ctx.fillStyle='#3d2b14'; ctx.fill();
   ctx.restore();
 }
@@ -301,8 +308,8 @@ function draw(){
     ctx.fill();
   }
   drawPipes(); drawGround();
-  // bigger box on the start page; gameplay box keeps BOX_SIZE
-  if (state!=='splash') drawBox(state==='start' ? 64 : BOX_SIZE);
+  // gameplay box keeps BOX_SIZE on every non-splash screen
+  if (state!=='splash') drawBox(BOX_SIZE);
 
   ctx.textAlign='center';
   if (state==='splash'){
@@ -313,7 +320,7 @@ function draw(){
     ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
     ctx.strokeText('A cardboard box with a smile', W/2, 160);
     ctx.fillText('A cardboard box with a smile', W/2, 160);
-    ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(); ctx.restore();
+    ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (sndOn ? 'ON' : 'OFF'));
     // tiny credit, top-right corner of the sky
