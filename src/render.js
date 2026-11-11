@@ -1,4 +1,36 @@
 // ---- drawing (all procedural, no assets) ----
+// 5x5 pixel bitmaps for the retro title — no font files needed
+const PIXEL_FONT = {
+  'B': ['11110','10001','11110','10001','11110'],
+  'O': ['01110','10001','10001','10001','01110'],
+  'X': ['10001','01010','00100','01010','10001'],
+  'Y': ['10001','01010','00100','00100','00100'],
+  'I': ['11111','00100','00100','00100','11111'],
+  'R': ['11110','10001','11110','10100','10001'],
+  'D': ['11110','10001','10001','10001','11110'],
+  ' ': ['00000','00000','00000','00000','00000'],
+};
+function drawPixelText(str, cx, top, cell, color, shadow){
+  const w = (str.length * 6 - 1) * cell;
+  const x0 = cx - w / 2;
+  const draw = (ox, oy, col) => {
+    ctx.fillStyle = col;
+    for (let li = 0; li < str.length; li++){
+      const g = PIXEL_FONT[str[li]] || PIXEL_FONT[' '];
+      for (let r = 0; r < 5; r++)
+        for (let c = 0; c < 5; c++)
+          if (g[r][c] === '1')
+            ctx.fillRect(x0 + li * 6 * cell + c * cell + ox, top + r * cell + oy, cell, cell);
+    }
+  };
+  draw(cell * 0.6, cell * 0.6, shadow); // chunky drop shadow
+  draw(0, 0, color);
+}
+// shared title style: same pixel font, size, colors, and position on
+// both the splash and start screens so branding stays consistent.
+function drawTitle(){
+  drawPixelText('BOXY BIRD', W/2, 104, 7, '#ffd94a', '#3d2b14');
+}
 function rr(x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -107,19 +139,18 @@ function draw(){
 
   ctx.textAlign='center';
   if (state==='splash'){
-    ctx.font='bold 44px sans-serif';
-    ctx.lineWidth=8; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
-    ctx.strokeText('BOXY BIRD', W/2, 130); ctx.fillText('BOXY BIRD', W/2, 130);
+    // same pixel-font title on splash and start (see drawTitle)
+    drawTitle();
     ctx.font='18px sans-serif'; ctx.lineWidth=4;
     ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
-    ctx.strokeText('A cardboard box with a smile', W/2, 160);
-    ctx.fillText('A cardboard box with a smile', W/2, 160);
+    ctx.strokeText('A cardboard box with a smile', W/2, 172);
+    ctx.fillText('A cardboard box with a smile', W/2, 172);
     // returning players see their best right away
     if (best>0){
       ctx.font='bold 16px Arial, sans-serif';
       ctx.lineWidth=3;
-      ctx.strokeText('Best: '+best, W/2, 188);
-      ctx.fillText('Best: '+best, W/2, 188);
+      ctx.strokeText('Best: '+best, W/2, 202);
+      ctx.fillText('Best: '+best, W/2, 202);
     }
     ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
@@ -131,9 +162,8 @@ function draw(){
     ctx.textAlign='center';
     if (hint) hint.textContent='';
   } else if (state==='start'){
-    ctx.font='bold 44px sans-serif';
-    ctx.lineWidth=8; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
-    ctx.strokeText('BOXY BIRD', W/2, 150); ctx.fillText('BOXY BIRD', W/2, 150);
+    // same pixel-font title as the splash screen
+    drawTitle();
     ctx.font='18px sans-serif'; ctx.lineWidth=4;
     ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
