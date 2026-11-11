@@ -114,6 +114,13 @@ function draw(){
     ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
     ctx.strokeText('A cardboard box with a smile', W/2, 160);
     ctx.fillText('A cardboard box with a smile', W/2, 160);
+    // returning players see their best right away
+    if (best>0){
+      ctx.font='bold 16px Arial, sans-serif';
+      ctx.lineWidth=3;
+      ctx.strokeText('Best: '+best, W/2, 188);
+      ctx.fillText('Best: '+best, W/2, 188);
+    }
     ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (Sfx.isEnabled() ? 'ON' : 'OFF'));
@@ -143,6 +150,10 @@ function draw(){
     ctx.font='bold 22px sans-serif';
     ctx.fillText('Score: '+score, W/2, py+100);
     ctx.fillText('Best:  '+best, W/2, py+132);
+    if (proMode){
+      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle='#c0392b';
+      ctx.fillText('PRO MODE RUN', W/2, py+160);
+    }
     if (deadTimer>45){
       ctx.font='16px sans-serif'; ctx.fillStyle='#7a5c2e';
       ctx.fillText('Click or press Space to play again', W/2, py+172);
@@ -153,6 +164,13 @@ function draw(){
     ctx.font='bold 48px sans-serif';
     ctx.lineWidth=6; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#fff';
     ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
+    // pro mode badge under the score
+    if (proMode){
+      ctx.font='bold 16px Arial, sans-serif';
+      ctx.lineWidth=4; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
+      ctx.strokeText('PRO MODE', W/2, 112);
+      ctx.fillText('PRO MODE', W/2, 112);
+    }
     if (hint) hint.textContent='';
   }
   if (flash>0){ ctx.fillStyle='rgba(255,255,255,'+flash+')'; ctx.fillRect(0,0,W,H); }

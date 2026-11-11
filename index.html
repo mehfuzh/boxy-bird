@@ -43,13 +43,18 @@ const SHARE_BTN = { x:(W-190)/2, y:395, w:190, h:44 };
 // splash screen buttons
 const NEWGAME_BTN = { x:(W-220)/2, y:390, w:220, h:52 };
 const SOUND_BTN   = { x:(W-220)/2, y:456, w:220, h:52 };
+// viral quick wins: milestone celebrations + pro mode speed-up
+const MILESTONES = [10, 25, 50];
+const PRO_AT = 25;           // score that triggers PRO MODE
+const PRO_SPEED_BONUS = 1.2; // extra px/frame for pipes in PRO MODE
 
 let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash;
 let best = +(localStorage.getItem('boxyBest') || 0);
+let proMode = false;
 
 function reset(){
   state='start'; box={y:H/2-60, vy:0, rot:0}; pipes=[]; score=0;
-  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[];
+  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false;
   for (let i=0;i<5;i++) clouds.push({x:Math.random()*W, y:40+Math.random()*180, s:30+Math.random()*40});
 }
 
@@ -74,6 +79,8 @@ function tone(type, f0, f1, dur, vol, delay){
 const sndFlap  = () => tone('sine', 350, 800, 0.10, 0.22);
 const sndScore = () => { tone('sine',880,880,0.09,0.20); tone('sine',1318,1318,0.14,0.20,0.09); };
 const sndCrash = () => { tone('sawtooth',220,45,0.35,0.28); tone('square',110,40,0.30,0.16); };
+const sndMilestone = () => { tone('sine',660,660,0.09,0.22); tone('sine',880,880,0.09,0.22,0.10); tone('sine',1320,1320,0.18,0.22,0.20); };
+const sndPro = () => { tone('square',220,440,0.12,0.18); tone('square',330,660,0.12,0.18,0.12); tone('sawtooth',440,880,0.25,0.20,0.24); };
 
 // ---- Input ----
 function flap(){
@@ -185,13 +192,20 @@ function update(){
   box.rot += (tr-box.rot)*0.15;
   if (box.y<24){ box.y=24; box.vy=Math.max(box.vy,0); } // no ceiling death
 
+  const spd = PIPE_SPEED + (proMode ? PRO_SPEED_BONUS : 0);
   if (pipes.length===0 || pipes[pipes.length-1].x < W-PIPE_SPACING) spawnPipe();
   for (const p of pipes){
-    p.x-=PIPE_SPEED;
-    if (!p.scored && p.x+PIPE_W < BOX_X){ p.scored=true; score++; sndScore(); }
+    p.x-=spd;
+    if (!p.scored && p.x+PIPE_W < BOX_X){
+      p.scored=true; score++; sndScore();
+      // milestone celebrations: flash + fanfare at 10/25/50
+      if (MILESTONES.includes(score)){ flash=0.5; sndMilestone(); }
+      // pro mode kicks in at PRO_AT: pipes scroll faster
+      if (score===PRO_AT){ proMode=true; flash=0.6; sndPro(); }
+    }
   }
   pipes = pipes.filter(p => p.x > -PIPE_W-10);
-  groundX = (groundX-PIPE_SPEED)%48;
+  groundX = (groundX-spd)%48;
 
   // collisions (forgiving hitbox)
   const bx=BOX_X-BOX_SIZE/2+HIT_INSET, by=box.y-BOX_SIZE/2+HIT_INSET, bs=BOX_SIZE-HIT_INSET*2;
@@ -320,6 +334,13 @@ function draw(){
     ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
     ctx.strokeText('A cardboard box with a smile', W/2, 160);
     ctx.fillText('A cardboard box with a smile', W/2, 160);
+    // returning players see their best right away
+    if (best>0){
+      ctx.font='bold 16px Arial, sans-serif';
+      ctx.lineWidth=3;
+      ctx.strokeText('Best: '+best, W/2, 188);
+      ctx.fillText('Best: '+best, W/2, 188);
+    }
     ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (sndOn ? 'ON' : 'OFF'));
@@ -349,6 +370,10 @@ function draw(){
     ctx.font='bold 22px sans-serif';
     ctx.fillText('Score: '+score, W/2, py+100);
     ctx.fillText('Best:  '+best, W/2, py+132);
+    if (proMode){
+      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle='#c0392b';
+      ctx.fillText('PRO MODE RUN', W/2, py+160);
+    }
     if (deadTimer>45){
       ctx.font='16px sans-serif'; ctx.fillStyle='#7a5c2e';
       ctx.fillText('Click or press Space to play again', W/2, py+172);
@@ -359,6 +384,13 @@ function draw(){
     ctx.font='bold 48px sans-serif';
     ctx.lineWidth=6; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#fff';
     ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
+    // pro mode badge under the score
+    if (proMode){
+      ctx.font='bold 16px Arial, sans-serif';
+      ctx.lineWidth=4; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
+      ctx.strokeText('PRO MODE', W/2, 112);
+      ctx.fillText('PRO MODE', W/2, 112);
+    }
     hint.textContent='';
   }
   if (flash>0){ ctx.fillStyle='rgba(255,255,255,'+flash+')'; ctx.fillRect(0,0,W,H); }

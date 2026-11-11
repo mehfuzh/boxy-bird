@@ -6,3 +6,7 @@ const SHARE_BTN = { x:(W-190)/2, y:395, w:190, h:44 };
 // splash screen buttons
 const NEWGAME_BTN = { x:(W-220)/2, y:390, w:220, h:52 };
 const SOUND_BTN   = { x:(W-220)/2, y:456, w:220, h:52 };
+// viral quick wins: milestone celebrations + pro mode speed-up
+const MILESTONES = [10, 25, 50];
+const PRO_AT = 25;           // score that triggers PRO MODE
+const PRO_SPEED_BONUS = 1.2; // extra px/frame for pipes in PRO MODE

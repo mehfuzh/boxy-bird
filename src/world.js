@@ -3,10 +3,11 @@ const Sfx = window.BoxySound;
 
 let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash;
 let best = Store.best;
+let proMode = false;
 
 function reset(){
   state='start'; box={y:H/2-60, vy:0, rot:0}; pipes=[]; score=0;
-  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[];
+  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false;
   for (let i=0;i<5;i++) clouds.push({x:Math.random()*W, y:40+Math.random()*180, s:30+Math.random()*40});
 }
 
@@ -43,13 +44,20 @@ function update(){
   box.rot += (tr-box.rot)*0.15;
   if (box.y<24){ box.y=24; box.vy=Math.max(box.vy,0); } // no ceiling death
 
+  const spd = PIPE_SPEED + (proMode ? PRO_SPEED_BONUS : 0);
   if (pipes.length===0 || pipes[pipes.length-1].x < W-PIPE_SPACING) spawnPipe();
   for (const p of pipes){
-    p.x-=PIPE_SPEED;
-    if (!p.scored && p.x+PIPE_W < BOX_X){ p.scored=true; score++; Sfx.score(); }
+    p.x-=spd;
+    if (!p.scored && p.x+PIPE_W < BOX_X){
+      p.scored=true; score++; Sfx.score();
+      // milestone celebrations: flash + fanfare at 10/25/50
+      if (MILESTONES.includes(score)){ flash=0.5; Sfx.milestone(); }
+      // pro mode kicks in at PRO_AT: pipes scroll faster
+      if (score===PRO_AT){ proMode=true; flash=0.6; Sfx.pro(); }
+    }
   }
   pipes = pipes.filter(p => p.x > -PIPE_W-10);
-  groundX = (groundX-PIPE_SPEED)%48;
+  groundX = (groundX-spd)%48;
 
   checkCollisions();
 }
