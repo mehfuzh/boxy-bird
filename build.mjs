@@ -1,10 +1,22 @@
 // Builds a single self-contained dist/index.html (inline CSS + JS),
 // matching the root index.html version of the game.
+// Scripts are inlined in dependency order: constants/store/sound first,
+// then world (sim), collision, render, input, and the entry point last.
 import { readFileSync, mkdirSync, writeFileSync, copyFileSync, existsSync } from "node:fs";
 
 const css = readFileSync("src/style.css", "utf8");
-const sound = readFileSync("src/sound.js", "utf8");
-const main = readFileSync("src/main.js", "utf8");
+// load order matters: each module uses globals defined by the ones above it
+const scripts = [
+  "src/sound.js",
+  "src/constants.js",
+  "src/store.js",
+  "src/world.js",
+  "src/collision.js",
+  "src/render.js",
+  "src/input.js",
+  "src/main.js",
+].map(f => readFileSync(f, "utf8"));
+const js = scripts.join("\n");
 
 // Public URL of the deployed game (GitHub Pages) + its share image.
 const SITE_URL = "https://mehfuzh.github.io/boxy-bird/";
@@ -39,10 +51,7 @@ ${css}
 <canvas id="game" width="480" height="640"></canvas>
 <div id="hint"></div>
 <script>
-${sound}
-</script>
-<script>
-${main}
+${js}
 </script>
 </body>
 </html>
