@@ -1,4 +1,6 @@
 // ---- Easy-mode tuning + geometry ----
+const _canvas = document.getElementById("game");
+const W = _canvas.width, H = _canvas.height;
 const GRAVITY=0.32, FLAP_V=-6.0, PIPE_SPEED=2.0, PIPE_GAP=220;
 const PIPE_W=72, PIPE_SPACING=270, GROUND_H=90, BOX_X=130, BOX_SIZE=46, HIT_INSET=7;
 // game-over share button (below the game-over card)
