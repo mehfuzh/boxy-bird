@@ -22,7 +22,10 @@ function update(){
   for (const c of clouds){ c.x-=0.35; if (c.x<-90){ c.x=W+40; c.y=40+Math.random()*180; } }
 
   if (state==='splash'){
-    box.y = 265; box.rot = Math.sin(frames*0.05)*0.08;
+    // gentle float: bob up/down + slight tilt (render.js draws a shadow
+    // under the logo box that tracks this offset)
+    box.y = 265 + Math.sin(frames*0.05)*6;
+    box.rot = Math.sin(frames*0.05)*0.08;
     return;
   }
   if (state==='start'){
