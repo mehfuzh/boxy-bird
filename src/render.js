@@ -1,51 +1,57 @@
 // ---- drawing (all procedural, no assets) ----
-// 5x5 pixel bitmaps for the retro title — no font files needed
+// 7x7 chunky block bitmaps for the title — Flappy-Bird-style fat
+// letters with 2-cell-thick strokes, no font files needed
 const PIXEL_FONT = {
-  'B': ['11110','10001','11110','10001','11110'],
-  'O': ['01110','10001','10001','10001','01110'],
-  'X': ['10001','01010','00100','01010','10001'],
-  'Y': ['10001','01010','00100','00100','00100'],
-  'I': ['11111','00100','00100','00100','11111'],
-  'R': ['11110','10001','11110','10100','10001'],
-  'D': ['11110','10001','10001','10001','11110'],
-  ' ': ['00000','00000','00000','00000','00000'],
+  'B': ['1111110','1100011','1100011','1111110','1100011','1100011','1111110'],
+  'O': ['0111110','1100011','1100011','1100011','1100011','1100011','0111110'],
+  'X': ['1100011','1110111','0111110','0011100','0111110','1110111','1100011'],
+  'Y': ['1100011','1100011','0110110','0011100','0011100','0011100','0011100'],
+  'I': ['1111111','0011100','0011100','0011100','0011100','0011100','1111111'],
+  'R': ['1111110','1100011','1100011','1111110','1101100','1100110','1100011'],
+  'D': ['1111110','1100011','1100011','1100011','1100011','1100011','1111110'],
+  ' ': ['000','000','000','000','000','000','000'],
 };
-// Bold 3D pixel logo: extruded sides + thick outline + gradient face + bevel.
+// Classic Flappy Bird logo lettering: cream-white face, thick dark
+// outline, and a green extruded shadow that matches the pipes.
+// Glyphs may have different widths (the space is narrower).
 function drawPixelText(str, cx, top, cell){
-  const w = (str.length * 6 - 1) * cell;
+  const gap = cell; // one empty column between letters
+  const glyphs = [...str].map(ch => PIXEL_FONT[ch] || PIXEL_FONT[' ']);
+  const w = glyphs.reduce((s, g) => s + g[0].length * cell, 0) + gap * (glyphs.length - 1);
   const x0 = cx - w / 2;
-  const h = 5 * cell;
+  const h = glyphs[0].length * cell;
   const draw = (ox, oy, col) => {
     ctx.fillStyle = col;
-    for (let li = 0; li < str.length; li++){
-      const g = PIXEL_FONT[str[li]] || PIXEL_FONT[' '];
-      for (let r = 0; r < 5; r++)
-        for (let c = 0; c < 5; c++)
+    let x = x0;
+    for (const g of glyphs){
+      for (let r = 0; r < g.length; r++)
+        for (let c = 0; c < g[r].length; c++)
           if (g[r][c] === '1')
-            ctx.fillRect(x0 + li * 6 * cell + c * cell + ox, top + r * cell + oy, cell, cell);
+            ctx.fillRect(x + c * cell + ox, top + r * cell + oy, cell, cell);
+      x += g[0].length * cell + gap;
     }
   };
   const depth = Math.round(cell * 0.7);
   draw(depth + 3, depth + 4, 'rgba(0,0,0,0.22)'); // soft cast shadow
-  // extruded 3D sides, darker toward the back
+  // green extruded shadow, darker toward the back (logo + pipe green)
   for (let d = depth; d >= 1; d--)
-    draw(d, d, d > depth / 2 ? '#7a4a12' : '#a06018');
+    draw(d, d, d > depth / 2 ? '#2e5b0e' : '#5a9e2f');
   // bold dark outline around the face
   const o = Math.max(2, cell * 0.3);
   for (const [ox, oy] of [[-o,0],[o,0],[0,-o],[0,o],[-o,-o],[o,-o],[-o,o],[o,o]])
     draw(ox, oy, '#3d2b14');
-  // bevel: light top edge, then the gradient face shifted slightly down
-  draw(0, 0, '#fff6c9');
+  // bevel: white top edge, then the cream face shifted slightly down
+  draw(0, 0, '#ffffff');
   const g = ctx.createLinearGradient(0, top, 0, top + h);
-  g.addColorStop(0, '#ffe98a');
-  g.addColorStop(0.5, '#ffd94a');
-  g.addColorStop(1, '#ff9d00');
+  g.addColorStop(0, '#ffffff');
+  g.addColorStop(0.55, '#fdf3cd');
+  g.addColorStop(1, '#f5dd8f');
   draw(0, cell * 0.22, g);
 }
 // shared title style: same pixel font, size, colors, and position on
 // both the splash and start screens so branding stays consistent.
 function drawTitle(){
-  drawPixelText('BOXY BIRD', W/2, 100, 8);
+  drawPixelText('BOXY BIRD', W/2, 100, 6);
 }
 function rr(x,y,w,h,r){
   ctx.beginPath();
@@ -166,7 +172,7 @@ function draw3DPanel(x,y,w,h,r,depth,faceTop,faceBottom,edge){
 }
 function draw3DButton(b, label, primary, fontSize){
   if (primary)
-    draw3DPanel(b.x,b.y,b.w,b.h,12,6,'#ffc24d','#ff9900','#8a4d0f');
+    draw3DPanel(b.x,b.y,b.w,b.h,12,6,'#96D955','#73BF2E','#2e5b0e');
   else
     draw3DPanel(b.x,b.y,b.w,b.h,12,6,'#fffdf2','#f2e3b6','#b9a06a');
   ctx.textAlign='center';
@@ -271,9 +277,9 @@ function draw(){
     } else if (hint) hint.textContent='';
     drawShareButton();
   } else {
-    // extruded 3D score
+    // extruded 3D score — green shadow to match the logo lettering
     ctx.font='bold 52px sans-serif';
-    ctx.fillStyle='#3d2b14';
+    ctx.fillStyle='#2e5b0e';
     for (let d=4; d>=1; d--) ctx.fillText(score, W/2+d, 84+d);
     ctx.lineWidth=6; ctx.lineJoin='round';
     ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#fff';
