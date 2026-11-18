@@ -1,3 +1,47 @@
+// ---- theme palettes ----
+const THEMES = {
+  default: {
+    skyTop:'#4ec0ca', skyBot:'#9adfe4',
+    cloud:'rgba(255,255,255,0.85)',
+    pipeMain:'#73BF2E', pipeHi:'#96D955', pipeBorder:'#2e5b0e',
+    groundBase:'#ded895', groundTop:'#5ee270', groundAccent:'#45c855',
+    groundDiag:'rgba(202,190,110,0.65)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#fffbe9', cardBorder:'#3d2b14', cardText:'#3d2b14',
+    cardTop:'#fffdf2', cardBot:'#f2e3b6', cardEdge:'#b9a06a',
+    titleColor:'#f5dd8f', titleShadow:'#3d2b14',
+    btnFill:'#fffbe9', btnBorder:'#3d2b14', btnText:'#3d2b14',
+    btnTop:'#fffdf2', btnBot:'#f2e3b6', btnEdge:'#b9a06a',
+    scoreFill:'#fff', scoreStroke:'#3d2b14',
+    proFill:'#ffd94a', proStroke:'#3d2b14',
+    overlay:'rgba(0,0,0,0.35)',
+    hintStroke:'rgba(61,43,20,.85)',
+    creditColor:'rgba(61,43,20,0.55)',
+    proCardText:'#c0392b',
+    replayText:'#7a5c2e',
+  },
+  halloween: {
+    skyTop:'#1a0a2e', skyBot:'#2d1b4e',
+    cloud:'rgba(120,90,160,0.4)',
+    pipeMain:'#e85d04', pipeHi:'#ff8c00', pipeBorder:'#8b3a00',
+    groundBase:'#1a1a2e', groundTop:'#3d2b5a', groundAccent:'#2d1b4e',
+    groundDiag:'rgba(60,40,90,0.5)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#2d1b4e', cardBorder:'#ff8c00', cardText:'#ff8c00',
+    cardTop:'#3d2b5a', cardBot:'#2d1b4e', cardEdge:'#1a0a2e',
+    titleColor:'#ff8c00', titleShadow:'#1a0a2e',
+    btnFill:'#2d1b4e', btnBorder:'#ff8c00', btnText:'#ff8c00',
+    btnTop:'#3d2b5a', btnBot:'#2d1b4e', btnEdge:'#1a0a2e',
+    scoreFill:'#ff8c00', scoreStroke:'#1a0a2e',
+    proFill:'#ff4444', proStroke:'#1a0a2e',
+    overlay:'rgba(20,5,30,0.5)',
+    hintStroke:'rgba(26,10,46,.85)',
+    creditColor:'rgba(255,140,0,0.55)',
+    proCardText:'#ff6b6b',
+    replayText:'#c9a0dc',
+  }
+};
+
 // ---- drawing (all procedural, no assets) ----
 // 7x7 chunky block bitmaps for the title — Flappy-Bird-style fat
 // letters with 2-cell-thick strokes, no font files needed
@@ -15,6 +59,7 @@ const PIXEL_FONT = {
 // outline, and a green extruded shadow that matches the pipes.
 // Glyphs may have different widths (the space is narrower).
 function drawPixelText(str, cx, top, cell){
+  const T = THEMES[theme];
   const gap = cell; // one empty column between letters
   const glyphs = [...str].map(ch => PIXEL_FONT[ch] || PIXEL_FONT[' ']);
   const w = glyphs.reduce((s, g) => s + g[0].length * cell, 0) + gap * (glyphs.length - 1);
@@ -35,20 +80,20 @@ function drawPixelText(str, cx, top, cell){
   draw(depth + 3, depth + 4, 'rgba(0,0,0,0.22)'); // soft cast shadow
   // green extruded shadow, darker toward the back (logo + pipe green)
   for (let d = depth; d >= 1; d--)
-    draw(d, d, d > depth / 2 ? '#2e5b0e' : '#5a9e2f');
+    draw(d, d, d > depth / 2 ? T.pipeBorder : T.pipeMain);
   // bold dark outline around the face
   const o = Math.max(2, cell * 0.3);
   for (const [ox, oy] of [[-o,0],[o,0],[0,-o],[0,o],[-o,-o],[o,-o],[-o,o],[o,o]])
-    draw(ox, oy, '#3d2b14');
+    draw(ox, oy, T.titleShadow);
   // bevel: white top edge, then the cream face shifted slightly down
   draw(0, 0, '#ffffff');
   const g = ctx.createLinearGradient(0, top, 0, top + h);
   g.addColorStop(0, '#ffffff');
   g.addColorStop(0.55, '#fdf3cd');
-  g.addColorStop(1, '#f5dd8f');
+  g.addColorStop(1, T.titleColor);
   draw(0, cell * 0.22, g);
 }
-// shared title style: same pixel font, size, colors, and position on
+// shared title style: same pixel font, size, and position on
 // both the splash and start screens so branding stays consistent.
 function drawTitle(){
   drawPixelText('BOXY BIRD', W/2, 100, 6);
@@ -61,29 +106,31 @@ function rr(x,y,w,h,r){
   ctx.closePath();
 }
 function drawPipes(){
+  const T = THEMES[theme];
   for (const p of pipes){
     const bt=p.gapTop+PIPE_GAP;
     // top pipe
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x,0,PIPE_W,p.gapTop-26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+6,0,10,p.gapTop-26);
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x-5,p.gapTop-26,PIPE_W+10,26);
-    ctx.strokeStyle='#2e5b0e'; ctx.lineWidth=2;
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x,0,PIPE_W,p.gapTop-26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+6,0,10,p.gapTop-26);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x-5,p.gapTop-26,PIPE_W+10,26);
+    ctx.strokeStyle=T.pipeBorder; ctx.lineWidth=2;
     ctx.strokeRect(p.x-4,p.gapTop-25,PIPE_W+8,24);
     // bottom pipe
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x-5,bt,PIPE_W+10,26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+1,bt+3,10,20);
-    ctx.strokeStyle='#2e5b0e'; ctx.strokeRect(p.x-4,bt+1,PIPE_W+8,24);
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x,bt+26,PIPE_W,H-GROUND_H-bt-26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+6,bt+26,10,H-GROUND_H-bt-26);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x-5,bt,PIPE_W+10,26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+1,bt+3,10,20);
+    ctx.strokeStyle=T.pipeBorder; ctx.strokeRect(p.x-4,bt+1,PIPE_W+8,24);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x,bt+26,PIPE_W,H-GROUND_H-bt-26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+6,bt+26,10,H-GROUND_H-bt-26);
   }
 }
 function drawGround(){
+  const T = THEMES[theme];
   const y=H-GROUND_H;
-  ctx.fillStyle='#ded895'; ctx.fillRect(0,y,W,GROUND_H);
-  ctx.fillStyle='#5ee270'; ctx.fillRect(0,y,W,14);
-  ctx.fillStyle='#45c855'; ctx.fillRect(0,y+12,W,3);
+  ctx.fillStyle=T.groundBase; ctx.fillRect(0,y,W,GROUND_H);
+  ctx.fillStyle=T.groundTop; ctx.fillRect(0,y,W,14);
+  ctx.fillStyle=T.groundAccent; ctx.fillRect(0,y+12,W,3);
   ctx.save(); ctx.beginPath(); ctx.rect(0,y+14,W,GROUND_H-14); ctx.clip();
-  ctx.fillStyle='rgba(202,190,110,0.65)';
+  ctx.fillStyle=T.groundDiag;
   for (let x=groundX-48; x<W+48; x+=48){
     ctx.beginPath();
     ctx.moveTo(x,y+14); ctx.lineTo(x+24,y+14); ctx.lineTo(x+4,H); ctx.lineTo(x-20,H);
@@ -94,6 +141,7 @@ function drawGround(){
 // The Boxy Bird logo: a bold 3D cardboard box (top + side faces,
 // gradient-lit front, tape, big eyes and an Amazon-orange smile).
 function drawBox(size=BOX_SIZE){
+  const T = THEMES[theme];
   const s=size;
   const d=s*0.16;          // 3D depth of the top/right faces
   const r=s/BOX_SIZE;      // scale factor vs the gameplay box
@@ -161,7 +209,7 @@ function drawBox(size=BOX_SIZE){
 }
 // Chunky extruded 3D panel (buttons + game-over card share this look).
 function draw3DPanel(x,y,w,h,r,depth,faceTop,faceBottom,edge){
-  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3;
+  ctx.strokeStyle=THEMES[theme].cardBorder; ctx.lineWidth=3;
   rr(x,y+depth,w,h,r); ctx.fillStyle=edge; ctx.fill(); ctx.stroke();
   const g=ctx.createLinearGradient(0,y,0,y+h);
   g.addColorStop(0,faceTop); g.addColorStop(1,faceBottom);
@@ -171,36 +219,53 @@ function draw3DPanel(x,y,w,h,r,depth,faceTop,faceBottom,edge){
   rr(x+6,y+4,w-12,7,4); ctx.fill();
 }
 function draw3DButton(b, label, primary, fontSize){
+  const T = THEMES[theme];
   if (primary)
-    draw3DPanel(b.x,b.y,b.w,b.h,12,6,'#96D955','#73BF2E','#2e5b0e');
+    draw3DPanel(b.x,b.y,b.w,b.h,12,6,T.pipeHi,T.pipeMain,T.pipeBorder);
   else
-    draw3DPanel(b.x,b.y,b.w,b.h,12,6,'#fffdf2','#f2e3b6','#b9a06a');
+    draw3DPanel(b.x,b.y,b.w,b.h,12,6,T.btnTop,T.btnBot,T.btnEdge);
   ctx.textAlign='center';
   ctx.font='bold '+fontSize+'px Arial, sans-serif';
   const tx=b.x+b.w/2, ty=b.y+b.h/2+fontSize*0.35;
   if (primary){
-    ctx.lineWidth=4; ctx.strokeStyle='#3d2b14'; ctx.lineJoin='round';
+    ctx.lineWidth=4; ctx.strokeStyle=T.titleShadow; ctx.lineJoin='round';
     ctx.strokeText(label, tx, ty);
     ctx.fillStyle='#fff'; ctx.fillText(label, tx, ty);
   } else {
-    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.fillText(label, tx, ty+1.5);
-    ctx.fillStyle='#3d2b14'; ctx.fillText(label, tx, ty);
+    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillText(label, tx, ty+1.5);
+    ctx.fillStyle=T.btnText; ctx.fillText(label, tx, ty);
   }
+}
+// confetti: small rotated rects, alpha fades with remaining lifetime
+function drawParticles(){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, W, H-GROUND_H); ctx.clip(); // stay in play area
+  for (const p of particles){
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(Math.atan2(p.vy, p.vx));
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life / Math.max(1, p.maxLife)));
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+    ctx.restore();
+  }
+  ctx.restore();
 }
 function drawMenuButton(b, label){
   draw3DButton(b, label, label==='NEW GAME', 20);
 }
 function drawShareButton(){
-  // below the game-over card, centered — same 3D cream style as the other
+  // below the game-over card, centered — same 3D style as the other
   // menu buttons so the page doesn't show two stacked Xs (the black
   // button + the 𝕏 glyph in the label).
   draw3DButton(SHARE_BTN, '𝕏 Share on X', false, 17);
 }
 function draw(){
+  const T = THEMES[theme];
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#4ec0ca'); g.addColorStop(1,'#9adfe4');
+  g.addColorStop(0,T.skyTop); g.addColorStop(1,T.skyBot);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.fillStyle=T.cloud;
   for (const c of clouds){
     ctx.beginPath();
     ctx.arc(c.x,c.y,c.s*0.5,0,Math.PI*2);
@@ -211,13 +276,14 @@ function draw(){
   drawPipes(); drawGround();
   // gameplay box keeps BOX_SIZE on every non-splash screen
   if (state!=='splash') drawBox(BOX_SIZE);
+  drawParticles();
 
   ctx.textAlign='center';
   if (state==='splash'){
     // same pixel-font title on splash and start (see drawTitle)
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
+    ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('A cardboard box with a smile', W/2, 176);
     ctx.fillText('A cardboard box with a smile', W/2, 176);
     // returning players see their best right away
@@ -240,10 +306,11 @@ function draw(){
     ctx.fill();
     ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(84); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
+    drawMenuButton(THEME_BTN, 'THEME: ' + theme.toUpperCase());
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (Sfx.isEnabled() ? 'ON' : 'OFF'));
     // tiny credit, top-right corner of the sky
     ctx.font='10px Arial, sans-serif';
-    ctx.fillStyle='rgba(61,43,20,0.55)'; ctx.textAlign='right';
+    ctx.fillStyle=T.creditColor; ctx.textAlign='right';
     ctx.fillText('powered by ドーセント', W-10, 24);
     ctx.textAlign='center';
     if (hint) hint.textContent='';
@@ -251,43 +318,43 @@ function draw(){
     // same pixel-font title as the splash screen
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
+    ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
     ctx.fillText('Deliver the box through the pipes!', W/2, 185);
     if (hint) hint.textContent='Click, tap or press Space to flap';
   } else if (state==='dead'){
-    ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
     const pw=310, ph=200, px2=(W-pw)/2, py=170;
-    draw3DPanel(px2,py,pw,ph,14,7,'#fffdf2','#f2e3b6','#b9a06a');
+    draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
     ctx.textAlign='center';
     ctx.font='bold 30px sans-serif';
     ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.fillText('GAME OVER', W/2, py+54);
-    ctx.fillStyle='#3d2b14'; ctx.fillText('GAME OVER', W/2, py+52);
+    ctx.fillStyle=T.cardText; ctx.fillText('GAME OVER', W/2, py+52);
     ctx.font='bold 22px sans-serif';
     ctx.fillText('Score: '+score, W/2, py+100);
     ctx.fillText('Best:  '+best, W/2, py+132);
     if (proMode){
-      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle='#c0392b';
+      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle=T.proCardText;
       ctx.fillText('PRO MODE RUN', W/2, py+160);
     }
     if (deadTimer>45){
-      ctx.font='16px sans-serif'; ctx.fillStyle='#7a5c2e';
+      ctx.font='16px sans-serif'; ctx.fillStyle=T.replayText;
       ctx.fillText('Click or press Space to play again', W/2, py+172);
       if (hint) hint.textContent='Click or press Space to play again';
     } else if (hint) hint.textContent='';
     drawShareButton();
   } else {
-    // extruded 3D score — green shadow to match the logo lettering
+    // extruded 3D score — shadow matches the logo lettering / pipes
     ctx.font='bold 52px sans-serif';
-    ctx.fillStyle='#2e5b0e';
+    ctx.fillStyle=T.pipeBorder;
     for (let d=4; d>=1; d--) ctx.fillText(score, W/2+d, 84+d);
     ctx.lineWidth=6; ctx.lineJoin='round';
-    ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#fff';
+    ctx.strokeStyle=T.scoreStroke; ctx.fillStyle=T.scoreFill;
     ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
     // pro mode badge under the score
     if (proMode){
       ctx.font='bold 16px Arial, sans-serif';
-      ctx.lineWidth=4; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
+      ctx.lineWidth=4; ctx.strokeStyle=T.proStroke; ctx.fillStyle=T.proFill;
       ctx.strokeText('PRO MODE', W/2, 112);
       ctx.fillText('PRO MODE', W/2, 112);
     }
