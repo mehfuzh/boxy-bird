@@ -280,6 +280,9 @@ function draw(){
 
   ctx.textAlign='center';
   if (state==='splash'){
+    // center the whole splash block vertically in the safe area
+    // (clears the iOS Dynamic Island / notch via SAFE_TOP)
+    ctx.save(); ctx.translate(0, SPLASH_DY);
     // same pixel-font title on splash and start (see drawTitle)
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
@@ -308,6 +311,7 @@ function draw(){
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(THEME_BTN, 'THEME: ' + theme.toUpperCase());
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (Sfx.isEnabled() ? 'ON' : 'OFF'));
+    ctx.restore();
     // tiny credit, top-right corner of the sky
     ctx.font='10px Arial, sans-serif';
     ctx.fillStyle=T.creditColor; ctx.textAlign='right';
@@ -315,15 +319,20 @@ function draw(){
     ctx.textAlign='center';
     if (hint) hint.textContent='';
   } else if (state==='start'){
-    // same pixel-font title as the splash screen
+    // same pixel-font title as the splash screen, at the same shifted
+    // position (SPLASH_DY) so branding stays put and clears the island
+    ctx.save(); ctx.translate(0, SPLASH_DY);
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
     ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
     ctx.fillText('Deliver the box through the pipes!', W/2, 185);
+    ctx.restore();
     if (hint) hint.textContent='Click, tap or press Space to flap';
   } else if (state==='dead'){
     ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
+    // center the card + share button in the safe area (below the island)
+    ctx.save(); ctx.translate(0, DEAD_DY);
     const pw=310, ph=200, px2=(W-pw)/2, py=170;
     draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
     ctx.textAlign='center';
@@ -343,6 +352,7 @@ function draw(){
       if (hint) hint.textContent='Click or press Space to play again';
     } else if (hint) hint.textContent='';
     drawShareButton();
+    ctx.restore();
   } else {
     // extruded 3D score — shadow matches the logo lettering / pipes
     ctx.font='bold 52px sans-serif';

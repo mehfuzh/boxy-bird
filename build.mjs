@@ -28,6 +28,7 @@ const html = `<!DOCTYPE html>
 <meta charset="utf-8">
 <title>Boxy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="keywords" content="boxy-bird, flappy-bird, flappy-bird-clone, ios, game, arcade-game, mobile-game, canvas, html5-canvas, javascript, web-audio, capacitor">
 <meta name="theme-color" content="#14202a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

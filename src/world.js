@@ -13,7 +13,8 @@ function reset(){
 }
 
 function spawnPipe(){
-  const minTop=70, maxTop=H-GROUND_H-PIPE_GAP-70;
+  // keep gaps below the notch / Dynamic Island so they're always visible
+  const minTop=70+SAFE_TOP, maxTop=H-GROUND_H-PIPE_GAP-70;
   pipes.push({x:W+20, gapTop:minTop+Math.random()*(maxTop-minTop), scored:false});
 }
 
@@ -76,7 +77,7 @@ function update(){
   box.vy+=GRAVITY; box.y+=box.vy;
   const tr=Math.max(-0.35, Math.min(1.25, box.vy/9));
   box.rot += (tr-box.rot)*0.15;
-  if (box.y<24){ box.y=24; box.vy=Math.max(box.vy,0); } // no ceiling death
+  if (box.y<24+SAFE_TOP){ box.y=24+SAFE_TOP; box.vy=Math.max(box.vy,0); } // no ceiling death; stay below the island
 
   const spd = PIPE_SPEED + (proMode ? PRO_SPEED_BONUS : 0);
   if (pipes.length===0 || pipes[pipes.length-1].x < W-PIPE_SPACING) spawnPipe();

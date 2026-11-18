@@ -30,7 +30,8 @@ function inBtn(b, sx, sy){
     sy >= b.y && sy <= b.y + b.h;
 }
 function inShareBtn(sx, sy){
-  return state==='dead' && inBtn(SHARE_BTN, sx, sy);
+  // share button is drawn shifted by DEAD_DY (see render.js)
+  return state==='dead' && inBtn(SHARE_BTN, sx, sy - DEAD_DY);
 }
 function initInput(){
   canvas.addEventListener('pointerdown', e => {
@@ -38,11 +39,12 @@ function initInput(){
     const r = canvas.getBoundingClientRect();
     const sx = (e.clientX - r.left) * (W / r.width);
     const sy = (e.clientY - r.top) * (H / r.height);
-    // splash screen buttons
+    // splash screen buttons (drawn shifted by SPLASH_DY — see render.js)
     if (state==='splash'){
-      if (inBtn(NEWGAME_BTN, sx, sy)) { state='start'; Sfx.flap(); return; }
-      if (inBtn(THEME_BTN, sx, sy)) { toggleTheme(); Sfx.flap(); return; }
-      if (inBtn(SOUND_BTN, sx, sy)) { Sfx.setEnabled(!Sfx.isEnabled()); return; }
+      const by = sy - SPLASH_DY;
+      if (inBtn(NEWGAME_BTN, sx, by)) { state='start'; Sfx.flap(); return; }
+      if (inBtn(THEME_BTN, sx, by)) { toggleTheme(); Sfx.flap(); return; }
+      if (inBtn(SOUND_BTN, sx, by)) { Sfx.setEnabled(!Sfx.isEnabled()); return; }
       return;
     }
     // share button hit area (game over only)
@@ -55,7 +57,7 @@ function initInput(){
     const sx = (e.clientX - r.left) * (W / r.width);
     const sy = (e.clientY - r.top) * (H / r.height);
     const overBtn = inShareBtn(sx, sy) ||
-      (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy) || inBtn(THEME_BTN, sx, sy) || inBtn(SOUND_BTN, sx, sy)));
+      (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy-SPLASH_DY) || inBtn(THEME_BTN, sx, sy-SPLASH_DY) || inBtn(SOUND_BTN, sx, sy-SPLASH_DY)));
     canvas.style.cursor = overBtn ? 'pointer' : 'default';
   });
   canvas.addEventListener('pointerleave', () => { canvas.style.cursor = 'default'; });
