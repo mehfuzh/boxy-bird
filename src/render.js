@@ -8,8 +8,10 @@ const THEMES = {
     groundDiag:'rgba(202,190,110,0.65)',
     boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
     cardBg:'#fffbe9', cardBorder:'#3d2b14', cardText:'#3d2b14',
-    titleColor:'#ffd94a', titleShadow:'#3d2b14',
+    cardTop:'#fffdf2', cardBot:'#f2e3b6', cardEdge:'#b9a06a',
+    titleColor:'#f5dd8f', titleShadow:'#3d2b14',
     btnFill:'#fffbe9', btnBorder:'#3d2b14', btnText:'#3d2b14',
+    btnTop:'#fffdf2', btnBot:'#f2e3b6', btnEdge:'#b9a06a',
     scoreFill:'#fff', scoreStroke:'#3d2b14',
     proFill:'#ffd94a', proStroke:'#3d2b14',
     overlay:'rgba(0,0,0,0.35)',
@@ -26,8 +28,10 @@ const THEMES = {
     groundDiag:'rgba(60,40,90,0.5)',
     boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
     cardBg:'#2d1b4e', cardBorder:'#ff8c00', cardText:'#ff8c00',
+    cardTop:'#3d2b5a', cardBot:'#2d1b4e', cardEdge:'#1a0a2e',
     titleColor:'#ff8c00', titleShadow:'#1a0a2e',
     btnFill:'#2d1b4e', btnBorder:'#ff8c00', btnText:'#ff8c00',
+    btnTop:'#3d2b5a', btnBot:'#2d1b4e', btnEdge:'#1a0a2e',
     scoreFill:'#ff8c00', scoreStroke:'#1a0a2e',
     proFill:'#ff4444', proStroke:'#1a0a2e',
     overlay:'rgba(20,5,30,0.5)',
@@ -39,38 +43,60 @@ const THEMES = {
 };
 
 // ---- drawing (all procedural, no assets) ----
-// 5x5 pixel bitmaps for the retro title — no font files needed
+// 7x7 chunky block bitmaps for the title — Flappy-Bird-style fat
+// letters with 2-cell-thick strokes, no font files needed
 const PIXEL_FONT = {
-  'B': ['11110','10001','11110','10001','11110'],
-  'O': ['01110','10001','10001','10001','01110'],
-  'X': ['10001','01010','00100','01010','10001'],
-  'Y': ['10001','01010','00100','00100','00100'],
-  'I': ['11111','00100','00100','00100','11111'],
-  'R': ['11110','10001','11110','10100','10001'],
-  'D': ['11110','10001','10001','10001','11110'],
-  ' ': ['00000','00000','00000','00000','00000'],
+  'B': ['1111110','1100011','1100011','1111110','1100011','1100011','1111110'],
+  'O': ['0111110','1100011','1100011','1100011','1100011','1100011','0111110'],
+  'X': ['1100011','1110111','0111110','0011100','0111110','1110111','1100011'],
+  'Y': ['1100011','1100011','0110110','0011100','0011100','0011100','0011100'],
+  'I': ['1111111','0011100','0011100','0011100','0011100','0011100','1111111'],
+  'R': ['1111110','1100011','1100011','1111110','1101100','1100110','1100011'],
+  'D': ['1111110','1100011','1100011','1100011','1100011','1100011','1111110'],
+  ' ': ['000','000','000','000','000','000','000'],
 };
-function drawPixelText(str, cx, top, cell, color, shadow){
-  const w = (str.length * 6 - 1) * cell;
+// Classic Flappy Bird logo lettering: cream-white face, thick dark
+// outline, and a green extruded shadow that matches the pipes.
+// Glyphs may have different widths (the space is narrower).
+function drawPixelText(str, cx, top, cell){
+  const T = THEMES[theme];
+  const gap = cell; // one empty column between letters
+  const glyphs = [...str].map(ch => PIXEL_FONT[ch] || PIXEL_FONT[' ']);
+  const w = glyphs.reduce((s, g) => s + g[0].length * cell, 0) + gap * (glyphs.length - 1);
   const x0 = cx - w / 2;
+  const h = glyphs[0].length * cell;
   const draw = (ox, oy, col) => {
     ctx.fillStyle = col;
-    for (let li = 0; li < str.length; li++){
-      const g = PIXEL_FONT[str[li]] || PIXEL_FONT[' '];
-      for (let r = 0; r < 5; r++)
-        for (let c = 0; c < 5; c++)
+    let x = x0;
+    for (const g of glyphs){
+      for (let r = 0; r < g.length; r++)
+        for (let c = 0; c < g[r].length; c++)
           if (g[r][c] === '1')
-            ctx.fillRect(x0 + li * 6 * cell + c * cell + ox, top + r * cell + oy, cell, cell);
+            ctx.fillRect(x + c * cell + ox, top + r * cell + oy, cell, cell);
+      x += g[0].length * cell + gap;
     }
   };
-  draw(cell * 0.6, cell * 0.6, shadow); // chunky drop shadow
-  draw(0, 0, color);
+  const depth = Math.round(cell * 0.7);
+  draw(depth + 3, depth + 4, 'rgba(0,0,0,0.22)'); // soft cast shadow
+  // green extruded shadow, darker toward the back (logo + pipe green)
+  for (let d = depth; d >= 1; d--)
+    draw(d, d, d > depth / 2 ? T.pipeBorder : T.pipeMain);
+  // bold dark outline around the face
+  const o = Math.max(2, cell * 0.3);
+  for (const [ox, oy] of [[-o,0],[o,0],[0,-o],[0,o],[-o,-o],[o,-o],[-o,o],[o,o]])
+    draw(ox, oy, T.titleShadow);
+  // bevel: white top edge, then the cream face shifted slightly down
+  draw(0, 0, '#ffffff');
+  const g = ctx.createLinearGradient(0, top, 0, top + h);
+  g.addColorStop(0, '#ffffff');
+  g.addColorStop(0.55, '#fdf3cd');
+  g.addColorStop(1, T.titleColor);
+  draw(0, cell * 0.22, g);
 }
 // shared title style: same pixel font, size, and position on
 // both the splash and start screens so branding stays consistent.
 function drawTitle(){
-  const T = THEMES[theme];
-  drawPixelText('BOXY BIRD', W/2, 104, 7, T.titleColor, T.titleShadow);
+  drawPixelText('BOXY BIRD', W/2, 100, 6);
 }
 function rr(x,y,w,h,r){
   ctx.beginPath();
@@ -112,74 +138,127 @@ function drawGround(){
   }
   ctx.restore();
 }
+// The Boxy Bird logo: a bold 3D cardboard box (top + side faces,
+// gradient-lit front, tape, big eyes and an Amazon-orange smile).
 function drawBox(size=BOX_SIZE){
   const T = THEMES[theme];
   const s=size;
+  const d=s*0.16;          // 3D depth of the top/right faces
+  const r=s/BOX_SIZE;      // scale factor vs the gameplay box
   ctx.save(); ctx.translate(BOX_X, box.y); ctx.rotate(box.rot);
+  ctx.lineJoin='round';
+  ctx.strokeStyle='#6b4518'; ctx.lineWidth=Math.max(2.5, 3*r);
+  // top face
+  ctx.beginPath();
+  ctx.moveTo(-s/2,-s/2); ctx.lineTo(-s/2+d,-s/2-d);
+  ctx.lineTo(s/2+d,-s/2-d); ctx.lineTo(s/2,-s/2); ctx.closePath();
+  ctx.fillStyle='#f0c98c'; ctx.fill(); ctx.stroke();
+  // tape strip across the top face
+  ctx.beginPath();
+  ctx.moveTo(-s*0.09,-s/2); ctx.lineTo(-s*0.09+d,-s/2-d);
+  ctx.lineTo(s*0.09+d,-s/2-d); ctx.lineTo(s*0.09,-s/2); ctx.closePath();
+  ctx.fillStyle='#d9a441'; ctx.fill();
+  // right face (in shade)
+  ctx.beginPath();
+  ctx.moveTo(s/2,-s/2); ctx.lineTo(s/2+d,-s/2-d);
+  ctx.lineTo(s/2+d,s/2-d); ctx.lineTo(s/2,s/2); ctx.closePath();
+  ctx.fillStyle='#a9743a'; ctx.fill(); ctx.stroke();
+  // front face with a vertical light gradient
+  const fg=ctx.createLinearGradient(0,-s/2,0,s/2);
+  fg.addColorStop(0,'#e9bc7d'); fg.addColorStop(1,'#cf9350');
   rr(-s/2,-s/2,s,s,7);
-  ctx.fillStyle=T.boxBody; ctx.fill();
-  ctx.strokeStyle=T.boxBorder; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.fillStyle=fg; ctx.fill(); ctx.stroke();
+  // inner lighting: bright left edge, shaded bottom (clipped to the face)
+  ctx.save();
+  rr(-s/2,-s/2,s,s,7); ctx.clip();
+  ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.fillRect(-s/2+2,-s/2+2,4*r,s-4);
+  ctx.fillStyle='rgba(0,0,0,0.12)';
+  ctx.fillRect(-s/2,s/2-6*r,s,6*r);
+  ctx.restore();
+  // tape seam across the front
   const seamY=-s/2+s*0.28;
-  ctx.fillStyle=T.boxSeam; ctx.fillRect(-s/2,seamY-4,s,8);
-  ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1.5;
-  ctx.strokeRect(-s/2,seamY-4,s,8);
-  const ey=seamY+9;
+  const tg=ctx.createLinearGradient(0,seamY-4,0,seamY+5);
+  tg.addColorStop(0,'#e8b23a'); tg.addColorStop(1,'#c99022');
+  ctx.fillStyle=tg; ctx.fillRect(-s/2,seamY-4,s,9);
+  ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fillRect(-s/2,seamY-4,s,2);
+  ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.lineWidth=1.5;
+  ctx.strokeRect(-s/2,seamY-4,s,9);
+  // big bold eyes
+  const ey=seamY+10*r;
   ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(-8,ey,5,0,Math.PI*2); ctx.arc(8,ey,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-8*r,ey,5.5*r,0,Math.PI*2); ctx.arc(8*r,ey,5.5*r,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(61,43,20,0.5)'; ctx.lineWidth=1.2*r;
+  ctx.beginPath(); ctx.arc(-8*r,ey,5.5*r,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(8*r,ey,5.5*r,0,Math.PI*2); ctx.stroke();
   ctx.fillStyle='#222';
-  ctx.beginPath(); ctx.arc(-7,ey+1,2.2,0,Math.PI*2); ctx.arc(9,ey+1,2.2,0,Math.PI*2); ctx.fill();
-  const r = s / BOX_SIZE;
+  ctx.beginPath(); ctx.arc(-7*r,ey+1*r,2.4*r,0,Math.PI*2); ctx.arc(9*r,ey+1*r,2.4*r,0,Math.PI*2); ctx.fill();
+  // bold Amazon-orange smile with a dark under-stroke
   const sy=ey+11*r;
-  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3*r; ctx.lineCap='round';
+  ctx.lineCap='round';
+  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=5.5*r;
   ctx.beginPath(); ctx.moveTo(-12*r,sy); ctx.quadraticCurveTo(0,sy+7*r,12*r,sy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(15*r,sy+1*r); ctx.lineTo(10*r,sy-3*r); ctx.lineTo(10*r,sy+4*r);
-  ctx.closePath(); ctx.fillStyle='#3d2b14'; ctx.fill();
+  ctx.strokeStyle='#ff9900'; ctx.lineWidth=3.2*r;
+  ctx.beginPath(); ctx.moveTo(-12*r,sy); ctx.quadraticCurveTo(0,sy+7*r,12*r,sy); ctx.stroke();
+  // smile arrowhead
+  ctx.beginPath(); ctx.moveTo(16*r,sy+1*r); ctx.lineTo(9.5*r,sy-4*r); ctx.lineTo(9.5*r,sy+5*r);
+  ctx.closePath();
+  ctx.fillStyle='#ff9900'; ctx.fill();
+  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=1.6*r; ctx.stroke();
   ctx.restore();
 }
-  // confetti: small rotated rects, alpha fades with remaining lifetime
-  function drawParticles(){
+// Chunky extruded 3D panel (buttons + game-over card share this look).
+function draw3DPanel(x,y,w,h,r,depth,faceTop,faceBottom,edge){
+  ctx.strokeStyle=THEMES[theme].cardBorder; ctx.lineWidth=3;
+  rr(x,y+depth,w,h,r); ctx.fillStyle=edge; ctx.fill(); ctx.stroke();
+  const g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,faceTop); g.addColorStop(1,faceBottom);
+  rr(x,y,w,h,r); ctx.fillStyle=g; ctx.fill(); ctx.stroke();
+  // glossy top highlight
+  ctx.fillStyle='rgba(255,255,255,0.45)';
+  rr(x+6,y+4,w-12,7,4); ctx.fill();
+}
+function draw3DButton(b, label, primary, fontSize){
+  const T = THEMES[theme];
+  if (primary)
+    draw3DPanel(b.x,b.y,b.w,b.h,12,6,T.pipeHi,T.pipeMain,T.pipeBorder);
+  else
+    draw3DPanel(b.x,b.y,b.w,b.h,12,6,T.btnTop,T.btnBot,T.btnEdge);
+  ctx.textAlign='center';
+  ctx.font='bold '+fontSize+'px Arial, sans-serif';
+  const tx=b.x+b.w/2, ty=b.y+b.h/2+fontSize*0.35;
+  if (primary){
+    ctx.lineWidth=4; ctx.strokeStyle=T.titleShadow; ctx.lineJoin='round';
+    ctx.strokeText(label, tx, ty);
+    ctx.fillStyle='#fff'; ctx.fillText(label, tx, ty);
+  } else {
+    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillText(label, tx, ty+1.5);
+    ctx.fillStyle=T.btnText; ctx.fillText(label, tx, ty);
+  }
+}
+// confetti: small rotated rects, alpha fades with remaining lifetime
+function drawParticles(){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, W, H-GROUND_H); ctx.clip(); // stay in play area
+  for (const p of particles){
     ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, W, H-GROUND_H); ctx.clip(); // stay in play area
-    for (const p of particles){
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(Math.atan2(p.vy, p.vx));
-      ctx.globalAlpha = Math.max(0, Math.min(1, p.life / Math.max(1, p.maxLife)));
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
-      ctx.restore();
-    }
+    ctx.translate(p.x, p.y);
+    ctx.rotate(Math.atan2(p.vy, p.vx));
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life / Math.max(1, p.maxLife)));
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
     ctx.restore();
   }
-  function drawMenuButton(b, label){
-  const T = THEMES[theme];
-  ctx.save();
-  ctx.translate(b.x + b.w/2, b.y + b.h/2);
-  ctx.fillStyle=T.btnFill;
-  ctx.strokeStyle=T.btnBorder; ctx.lineWidth=3;
-  rr(-b.w/2, -b.h/2, b.w, b.h, 10);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle=T.btnText;
-  ctx.font='bold 20px Arial, sans-serif';
-  ctx.textAlign='center';
-  ctx.fillText(label, 0, 7);
   ctx.restore();
 }
+function drawMenuButton(b, label){
+  draw3DButton(b, label, label==='NEW GAME', 20);
+}
 function drawShareButton(){
-  const T = THEMES[theme];
-  // below the game-over card, centered — same style as the other
-  // menu buttons so the page doesn't show two stacked Xs.
-  ctx.save();
-  ctx.translate(SHARE_BTN.x + SHARE_BTN.w/2, SHARE_BTN.y + SHARE_BTN.h/2);
-  ctx.fillStyle=T.btnFill;
-  ctx.strokeStyle=T.btnBorder; ctx.lineWidth=3;
-  rr(-SHARE_BTN.w/2, -SHARE_BTN.h/2, SHARE_BTN.w, SHARE_BTN.h, 10);
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle=T.btnText;
-  ctx.font='bold 17px Arial, sans-serif';
-  ctx.textAlign='center';
-  ctx.fillText('𝕏 Share on X', 0, 6);
-  ctx.restore();
+  // below the game-over card, centered — same 3D style as the other
+  // menu buttons so the page doesn't show two stacked Xs (the black
+  // button + the 𝕏 glyph in the label).
+  draw3DButton(SHARE_BTN, '𝕏 Share on X', false, 17);
 }
 function draw(){
   const T = THEMES[theme];
@@ -203,18 +282,29 @@ function draw(){
   if (state==='splash'){
     // same pixel-font title on splash and start (see drawTitle)
     drawTitle();
-    ctx.font='18px sans-serif'; ctx.lineWidth=4;
+    ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
     ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
-    ctx.strokeText('A cardboard box with a smile', W/2, 172);
-    ctx.fillText('A cardboard box with a smile', W/2, 172);
+    ctx.strokeText('A cardboard box with a smile', W/2, 176);
+    ctx.fillText('A cardboard box with a smile', W/2, 176);
     // returning players see their best right away
     if (best>0){
       ctx.font='bold 16px Arial, sans-serif';
       ctx.lineWidth=3;
-      ctx.strokeText('Best: '+best, W/2, 202);
-      ctx.fillText('Best: '+best, W/2, 202);
+      ctx.strokeText('Best: '+best, W/2, 204);
+      ctx.fillText('Best: '+best, W/2, 204);
     }
-    ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
+    // warm glow behind the logo box + floating ground shadow
+    const glow=ctx.createRadialGradient(W/2,box.y,10,W/2,box.y,120);
+    glow.addColorStop(0,'rgba(255,244,200,0.55)');
+    glow.addColorStop(1,'rgba(255,244,200,0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath(); ctx.arc(W/2,box.y,120,0,Math.PI*2); ctx.fill();
+    const lift=box.y-265; // splash bob offset (see world.js)
+    ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(W/2,338,46+lift*0.9,9+lift*0.15,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(84); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(THEME_BTN, 'THEME: ' + theme.toUpperCase());
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (Sfx.isEnabled() ? 'ON' : 'OFF'));
@@ -227,7 +317,7 @@ function draw(){
   } else if (state==='start'){
     // same pixel-font title as the splash screen
     drawTitle();
-    ctx.font='18px sans-serif'; ctx.lineWidth=4;
+    ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
     ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
     ctx.fillText('Deliver the box through the pipes!', W/2, 185);
@@ -235,11 +325,11 @@ function draw(){
   } else if (state==='dead'){
     ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
     const pw=310, ph=200, px2=(W-pw)/2, py=170;
-    rr(px2,py,pw,ph,14); ctx.fillStyle=T.cardBg; ctx.fill();
-    ctx.strokeStyle=T.cardBorder; ctx.lineWidth=3;
-    rr(px2,py,pw,ph,14); ctx.stroke();
-    ctx.fillStyle=T.cardText;
-    ctx.font='bold 30px sans-serif'; ctx.fillText('GAME OVER', W/2, py+52);
+    draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
+    ctx.textAlign='center';
+    ctx.font='bold 30px sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.fillText('GAME OVER', W/2, py+54);
+    ctx.fillStyle=T.cardText; ctx.fillText('GAME OVER', W/2, py+52);
     ctx.font='bold 22px sans-serif';
     ctx.fillText('Score: '+score, W/2, py+100);
     ctx.fillText('Best:  '+best, W/2, py+132);
@@ -254,8 +344,12 @@ function draw(){
     } else if (hint) hint.textContent='';
     drawShareButton();
   } else {
-    ctx.font='bold 48px sans-serif';
-    ctx.lineWidth=6; ctx.strokeStyle=T.scoreStroke; ctx.fillStyle=T.scoreFill;
+    // extruded 3D score — shadow matches the logo lettering / pipes
+    ctx.font='bold 52px sans-serif';
+    ctx.fillStyle=T.pipeBorder;
+    for (let d=4; d>=1; d--) ctx.fillText(score, W/2+d, 84+d);
+    ctx.lineWidth=6; ctx.lineJoin='round';
+    ctx.strokeStyle=T.scoreStroke; ctx.fillStyle=T.scoreFill;
     ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
     // pro mode badge under the score
     if (proMode){
