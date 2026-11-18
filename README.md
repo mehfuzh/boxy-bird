@@ -72,6 +72,20 @@ npm run build   # → dist/index.html + dist/og-image.png
 
 The `dist/` folder is what gets deployed to GitHub Pages (`https://mehfuzh.github.io/boxy-bird/`).
 
+## 📱 iOS App (Capacitor)
+
+The game ships as a native iOS app via [Capacitor](https://capacitorjs.com) — the built `dist/index.html` runs in a WKWebView shell (`ios/` Xcode project, app id `com.mehfuzh.boxybird`).
+
+```sh
+npm install                 # Capacitor CLI + iOS platform (dev deps)
+npm run assets              # generate assets/icon-only.png + splash images
+npx cap add ios             # one-time: create the ios/ Xcode project
+npx @capacitor/assets generate --ios   # one-time: app icon + launch screens
+npm run ios:open            # build dist/, sync into ios/, open Xcode
+```
+
+In Xcode: select your signing team, then **Product → Archive → Distribute App → App Store Connect**. Requires a paid Apple Developer account. After any game change, `npm run ios:sync` copies the new build into the native project.
+
 ## 🤖 Built with [Docent](https://docent.ai)
 
 This project was designed and written with the help of **Docent**, an AI coding assistant. The splash screen carries a small "powered by ドーセント" credit as a nod to that collaboration.
