@@ -1,3 +1,43 @@
+// ---- theme palettes ----
+const THEMES = {
+  default: {
+    skyTop:'#4ec0ca', skyBot:'#9adfe4',
+    cloud:'rgba(255,255,255,0.85)',
+    pipeMain:'#73BF2E', pipeHi:'#96D955', pipeBorder:'#2e5b0e',
+    groundBase:'#ded895', groundTop:'#5ee270', groundAccent:'#45c855',
+    groundDiag:'rgba(202,190,110,0.65)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#fffbe9', cardBorder:'#3d2b14', cardText:'#3d2b14',
+    titleColor:'#ffd94a', titleShadow:'#3d2b14',
+    btnFill:'#fffbe9', btnBorder:'#3d2b14', btnText:'#3d2b14',
+    scoreFill:'#fff', scoreStroke:'#3d2b14',
+    proFill:'#ffd94a', proStroke:'#3d2b14',
+    overlay:'rgba(0,0,0,0.35)',
+    hintStroke:'rgba(61,43,20,.85)',
+    creditColor:'rgba(61,43,20,0.55)',
+    proCardText:'#c0392b',
+    replayText:'#7a5c2e',
+  },
+  halloween: {
+    skyTop:'#1a0a2e', skyBot:'#2d1b4e',
+    cloud:'rgba(120,90,160,0.4)',
+    pipeMain:'#e85d04', pipeHi:'#ff8c00', pipeBorder:'#8b3a00',
+    groundBase:'#1a1a2e', groundTop:'#3d2b5a', groundAccent:'#2d1b4e',
+    groundDiag:'rgba(60,40,90,0.5)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#2d1b4e', cardBorder:'#ff8c00', cardText:'#ff8c00',
+    titleColor:'#ff8c00', titleShadow:'#1a0a2e',
+    btnFill:'#2d1b4e', btnBorder:'#ff8c00', btnText:'#ff8c00',
+    scoreFill:'#ff8c00', scoreStroke:'#1a0a2e',
+    proFill:'#ff4444', proStroke:'#1a0a2e',
+    overlay:'rgba(20,5,30,0.5)',
+    hintStroke:'rgba(26,10,46,.85)',
+    creditColor:'rgba(255,140,0,0.55)',
+    proCardText:'#ff6b6b',
+    replayText:'#c9a0dc',
+  }
+};
+
 // ---- drawing (all procedural, no assets) ----
 // 5x5 pixel bitmaps for the retro title — no font files needed
 const PIXEL_FONT = {
@@ -26,10 +66,11 @@ function drawPixelText(str, cx, top, cell, color, shadow){
   draw(cell * 0.6, cell * 0.6, shadow); // chunky drop shadow
   draw(0, 0, color);
 }
-// shared title style: same pixel font, size, colors, and position on
+// shared title style: same pixel font, size, and position on
 // both the splash and start screens so branding stays consistent.
 function drawTitle(){
-  drawPixelText('BOXY BIRD', W/2, 104, 7, '#ffd94a', '#3d2b14');
+  const T = THEMES[theme];
+  drawPixelText('BOXY BIRD', W/2, 104, 7, T.titleColor, T.titleShadow);
 }
 function rr(x,y,w,h,r){
   ctx.beginPath();
@@ -39,29 +80,31 @@ function rr(x,y,w,h,r){
   ctx.closePath();
 }
 function drawPipes(){
+  const T = THEMES[theme];
   for (const p of pipes){
     const bt=p.gapTop+PIPE_GAP;
     // top pipe
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x,0,PIPE_W,p.gapTop-26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+6,0,10,p.gapTop-26);
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x-5,p.gapTop-26,PIPE_W+10,26);
-    ctx.strokeStyle='#2e5b0e'; ctx.lineWidth=2;
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x,0,PIPE_W,p.gapTop-26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+6,0,10,p.gapTop-26);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x-5,p.gapTop-26,PIPE_W+10,26);
+    ctx.strokeStyle=T.pipeBorder; ctx.lineWidth=2;
     ctx.strokeRect(p.x-4,p.gapTop-25,PIPE_W+8,24);
     // bottom pipe
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x-5,bt,PIPE_W+10,26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+1,bt+3,10,20);
-    ctx.strokeStyle='#2e5b0e'; ctx.strokeRect(p.x-4,bt+1,PIPE_W+8,24);
-    ctx.fillStyle='#73BF2E'; ctx.fillRect(p.x,bt+26,PIPE_W,H-GROUND_H-bt-26);
-    ctx.fillStyle='#96D955'; ctx.fillRect(p.x+6,bt+26,10,H-GROUND_H-bt-26);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x-5,bt,PIPE_W+10,26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+1,bt+3,10,20);
+    ctx.strokeStyle=T.pipeBorder; ctx.strokeRect(p.x-4,bt+1,PIPE_W+8,24);
+    ctx.fillStyle=T.pipeMain; ctx.fillRect(p.x,bt+26,PIPE_W,H-GROUND_H-bt-26);
+    ctx.fillStyle=T.pipeHi; ctx.fillRect(p.x+6,bt+26,10,H-GROUND_H-bt-26);
   }
 }
 function drawGround(){
+  const T = THEMES[theme];
   const y=H-GROUND_H;
-  ctx.fillStyle='#ded895'; ctx.fillRect(0,y,W,GROUND_H);
-  ctx.fillStyle='#5ee270'; ctx.fillRect(0,y,W,14);
-  ctx.fillStyle='#45c855'; ctx.fillRect(0,y+12,W,3);
+  ctx.fillStyle=T.groundBase; ctx.fillRect(0,y,W,GROUND_H);
+  ctx.fillStyle=T.groundTop; ctx.fillRect(0,y,W,14);
+  ctx.fillStyle=T.groundAccent; ctx.fillRect(0,y+12,W,3);
   ctx.save(); ctx.beginPath(); ctx.rect(0,y+14,W,GROUND_H-14); ctx.clip();
-  ctx.fillStyle='rgba(202,190,110,0.65)';
+  ctx.fillStyle=T.groundDiag;
   for (let x=groundX-48; x<W+48; x+=48){
     ctx.beginPath();
     ctx.moveTo(x,y+14); ctx.lineTo(x+24,y+14); ctx.lineTo(x+4,H); ctx.lineTo(x-20,H);
@@ -70,13 +113,14 @@ function drawGround(){
   ctx.restore();
 }
 function drawBox(size=BOX_SIZE){
+  const T = THEMES[theme];
   const s=size;
   ctx.save(); ctx.translate(BOX_X, box.y); ctx.rotate(box.rot);
   rr(-s/2,-s/2,s,s,7);
-  ctx.fillStyle='#D9A15E'; ctx.fill();
-  ctx.strokeStyle='#8a5a24'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.fillStyle=T.boxBody; ctx.fill();
+  ctx.strokeStyle=T.boxBorder; ctx.lineWidth=2.5; ctx.stroke();
   const seamY=-s/2+s*0.28;
-  ctx.fillStyle='#c99022'; ctx.fillRect(-s/2,seamY-4,s,8);
+  ctx.fillStyle=T.boxSeam; ctx.fillRect(-s/2,seamY-4,s,8);
   ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1.5;
   ctx.strokeRect(-s/2,seamY-4,s,8);
   const ey=seamY+9;
@@ -92,40 +136,57 @@ function drawBox(size=BOX_SIZE){
   ctx.closePath(); ctx.fillStyle='#3d2b14'; ctx.fill();
   ctx.restore();
 }
-function drawMenuButton(b, label){
+  // confetti: small rotated rects, alpha fades with remaining lifetime
+  function drawParticles(){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H-GROUND_H); ctx.clip(); // stay in play area
+    for (const p of particles){
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.atan2(p.vy, p.vx));
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life / Math.max(1, p.maxLife)));
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+  function drawMenuButton(b, label){
+  const T = THEMES[theme];
   ctx.save();
   ctx.translate(b.x + b.w/2, b.y + b.h/2);
-  ctx.fillStyle='#fffbe9';
-  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3;
+  ctx.fillStyle=T.btnFill;
+  ctx.strokeStyle=T.btnBorder; ctx.lineWidth=3;
   rr(-b.w/2, -b.h/2, b.w, b.h, 10);
   ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#3d2b14';
+  ctx.fillStyle=T.btnText;
   ctx.font='bold 20px Arial, sans-serif';
   ctx.textAlign='center';
   ctx.fillText(label, 0, 7);
   ctx.restore();
 }
 function drawShareButton(){
-  // below the game-over card, centered — same cream style as the other
-  // menu buttons so the page doesn't show two stacked Xs (the black
-  // button + the 𝕏 glyph in the label).
+  const T = THEMES[theme];
+  // below the game-over card, centered — same style as the other
+  // menu buttons so the page doesn't show two stacked Xs.
   ctx.save();
   ctx.translate(SHARE_BTN.x + SHARE_BTN.w/2, SHARE_BTN.y + SHARE_BTN.h/2);
-  ctx.fillStyle='#fffbe9';
-  ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3;
+  ctx.fillStyle=T.btnFill;
+  ctx.strokeStyle=T.btnBorder; ctx.lineWidth=3;
   rr(-SHARE_BTN.w/2, -SHARE_BTN.h/2, SHARE_BTN.w, SHARE_BTN.h, 10);
   ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#3d2b14';
+  ctx.fillStyle=T.btnText;
   ctx.font='bold 17px Arial, sans-serif';
   ctx.textAlign='center';
   ctx.fillText('𝕏 Share on X', 0, 6);
   ctx.restore();
 }
 function draw(){
+  const T = THEMES[theme];
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#4ec0ca'); g.addColorStop(1,'#9adfe4');
+  g.addColorStop(0,T.skyTop); g.addColorStop(1,T.skyBot);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.fillStyle=T.cloud;
   for (const c of clouds){
     ctx.beginPath();
     ctx.arc(c.x,c.y,c.s*0.5,0,Math.PI*2);
@@ -136,13 +197,14 @@ function draw(){
   drawPipes(); drawGround();
   // gameplay box keeps BOX_SIZE on every non-splash screen
   if (state!=='splash') drawBox(BOX_SIZE);
+  drawParticles();
 
   ctx.textAlign='center';
   if (state==='splash'){
     // same pixel-font title on splash and start (see drawTitle)
     drawTitle();
     ctx.font='18px sans-serif'; ctx.lineWidth=4;
-    ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
+    ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('A cardboard box with a smile', W/2, 172);
     ctx.fillText('A cardboard box with a smile', W/2, 172);
     // returning players see their best right away
@@ -154,10 +216,11 @@ function draw(){
     }
     ctx.save(); ctx.translate(W/2-BOX_X, 0); drawBox(80); ctx.restore();
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
+    drawMenuButton(THEME_BTN, 'THEME: ' + theme.toUpperCase());
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (Sfx.isEnabled() ? 'ON' : 'OFF'));
     // tiny credit, top-right corner of the sky
     ctx.font='10px Arial, sans-serif';
-    ctx.fillStyle='rgba(61,43,20,0.55)'; ctx.textAlign='right';
+    ctx.fillStyle=T.creditColor; ctx.textAlign='right';
     ctx.fillText('powered by ドーセント', W-10, 24);
     ctx.textAlign='center';
     if (hint) hint.textContent='';
@@ -165,39 +228,39 @@ function draw(){
     // same pixel-font title as the splash screen
     drawTitle();
     ctx.font='18px sans-serif'; ctx.lineWidth=4;
-    ctx.strokeStyle='rgba(61,43,20,.85)'; ctx.fillStyle='#fff';
+    ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
     ctx.fillText('Deliver the box through the pipes!', W/2, 185);
     if (hint) hint.textContent='Click, tap or press Space to flap';
   } else if (state==='dead'){
-    ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
     const pw=310, ph=200, px2=(W-pw)/2, py=170;
-    rr(px2,py,pw,ph,14); ctx.fillStyle='#fffbe9'; ctx.fill();
-    ctx.strokeStyle='#3d2b14'; ctx.lineWidth=3;
+    rr(px2,py,pw,ph,14); ctx.fillStyle=T.cardBg; ctx.fill();
+    ctx.strokeStyle=T.cardBorder; ctx.lineWidth=3;
     rr(px2,py,pw,ph,14); ctx.stroke();
-    ctx.fillStyle='#3d2b14';
+    ctx.fillStyle=T.cardText;
     ctx.font='bold 30px sans-serif'; ctx.fillText('GAME OVER', W/2, py+52);
     ctx.font='bold 22px sans-serif';
     ctx.fillText('Score: '+score, W/2, py+100);
     ctx.fillText('Best:  '+best, W/2, py+132);
     if (proMode){
-      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle='#c0392b';
+      ctx.font='bold 14px Arial, sans-serif'; ctx.fillStyle=T.proCardText;
       ctx.fillText('PRO MODE RUN', W/2, py+160);
     }
     if (deadTimer>45){
-      ctx.font='16px sans-serif'; ctx.fillStyle='#7a5c2e';
+      ctx.font='16px sans-serif'; ctx.fillStyle=T.replayText;
       ctx.fillText('Click or press Space to play again', W/2, py+172);
       if (hint) hint.textContent='Click or press Space to play again';
     } else if (hint) hint.textContent='';
     drawShareButton();
   } else {
     ctx.font='bold 48px sans-serif';
-    ctx.lineWidth=6; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#fff';
+    ctx.lineWidth=6; ctx.strokeStyle=T.scoreStroke; ctx.fillStyle=T.scoreFill;
     ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
     // pro mode badge under the score
     if (proMode){
       ctx.font='bold 16px Arial, sans-serif';
-      ctx.lineWidth=4; ctx.strokeStyle='#3d2b14'; ctx.fillStyle='#ffd94a';
+      ctx.lineWidth=4; ctx.strokeStyle=T.proStroke; ctx.fillStyle=T.proFill;
       ctx.strokeText('PRO MODE', W/2, 112);
       ctx.fillText('PRO MODE', W/2, 112);
     }

@@ -41,6 +41,7 @@ function initInput(){
     // splash screen buttons
     if (state==='splash'){
       if (inBtn(NEWGAME_BTN, sx, sy)) { state='start'; Sfx.flap(); return; }
+      if (inBtn(THEME_BTN, sx, sy)) { toggleTheme(); Sfx.flap(); return; }
       if (inBtn(SOUND_BTN, sx, sy)) { Sfx.setEnabled(!Sfx.isEnabled()); return; }
       return;
     }
@@ -48,13 +49,13 @@ function initInput(){
     if (inShareBtn(sx, sy)) { shareScore(); return; }
     flap();
   });
-  // hand cursor when hovering the share button
+  // hand cursor when hovering buttons
   canvas.addEventListener('pointermove', e => {
     const r = canvas.getBoundingClientRect();
     const sx = (e.clientX - r.left) * (W / r.width);
     const sy = (e.clientY - r.top) * (H / r.height);
     const overBtn = inShareBtn(sx, sy) ||
-      (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy) || inBtn(SOUND_BTN, sx, sy)));
+      (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy) || inBtn(THEME_BTN, sx, sy) || inBtn(SOUND_BTN, sx, sy)));
     canvas.style.cursor = overBtn ? 'pointer' : 'default';
   });
   canvas.addEventListener('pointerleave', () => { canvas.style.cursor = 'default'; });

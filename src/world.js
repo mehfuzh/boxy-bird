@@ -1,13 +1,14 @@
 // ---- world state + physics simulation ----
 const Sfx = window.BoxySound;
 
-let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash;
+let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash, particles = [];
 let best = Store.best;
+let theme = Store.theme;
 let proMode = false;
 
 function reset(){
   state='start'; box={y:H/2-60, vy:0, rot:0}; pipes=[]; score=0;
-  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false;
+  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false; particles=[];
   for (let i=0;i<5;i++) clouds.push({x:Math.random()*W, y:40+Math.random()*180, s:30+Math.random()*40});
 }
 
@@ -16,9 +17,39 @@ function spawnPipe(){
   pipes.push({x:W+20, gapTop:minTop+Math.random()*(maxTop-minTop), scored:false});
 }
 
+// ---- confetti particles (pooled array, no per-frame allocation) ----
+const PARTICLE_POOL = [];
+function spawnParticles(x, y, count, palette){
+  for (let i=0; i<count; i++){
+    const a = Math.random()*Math.PI*2;
+    const v = 1.5 + Math.random()*3.5;
+    const p = PARTICLE_POOL.pop() || {};
+    p.x=x; p.y=y;
+    p.vx=Math.cos(a)*v; p.vy=Math.sin(a)*v-1.5;
+    p.life=p.maxLife=40+Math.random()*30;
+    p.color=palette[Math.floor(Math.random()*palette.length)];
+    p.size=3+Math.random()*4;
+    particles.push(p);
+  }
+}
+function updateParticles(){
+  for (const p of particles){
+    p.vy+=GRAVITY*0.5; p.x+=p.vx; p.y+=p.vy; p.life--;
+  }
+  for (let i=particles.length-1; i>=0; i--){
+    if (particles[i].life<=0){ PARTICLE_POOL.push(particles[i]); particles.splice(i,1); }
+  }
+}
+
+function toggleTheme(){
+  theme = theme === 'default' ? 'halloween' : 'default';
+  Store.theme = theme;
+}
+
 function update(){
   frames++;
   if (flash>0) flash=Math.max(0, flash-0.06);
+  updateParticles();
   for (const c of clouds){ c.x-=0.35; if (c.x<-90){ c.x=W+40; c.y=40+Math.random()*180; } }
 
   if (state==='splash'){
@@ -50,10 +81,16 @@ function update(){
     p.x-=spd;
     if (!p.scored && p.x+PIPE_W < BOX_X){
       p.scored=true; score++; Sfx.score();
-      // milestone celebrations: flash + fanfare at 10/25/50
-      if (MILESTONES.includes(score)){ flash=0.5; Sfx.milestone(); }
-      // pro mode kicks in at PRO_AT: pipes scroll faster
-      if (score===PRO_AT){ proMode=true; flash=0.6; Sfx.pro(); }
+        // milestone celebrations: confetti burst + fanfare at 10/25/50
+        if (MILESTONES.includes(score)){
+          flash=0.3; Sfx.milestone();
+          spawnParticles(BOX_X, box.y, 30, MILESTONE_COLORS);
+        }
+        // pro mode kicks in at PRO_AT: pipes scroll faster + big burst
+        if (score===PRO_AT){
+          proMode=true; flash=0.4; Sfx.pro();
+          spawnParticles(BOX_X, box.y, 50, PRO_COLORS);
+        }
     }
   }
   pipes = pipes.filter(p => p.x > -PIPE_W-10);

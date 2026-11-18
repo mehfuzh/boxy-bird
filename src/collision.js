@@ -2,6 +2,8 @@
 function die(){
   if (state!=='play') return;
   state='dead'; deadTimer=0; flash=0.7; Sfx.crash();
+  // death puff: dusty grey burst as the box tips over
+  spawnParticles(BOX_X, box.y, 14, DEATH_COLORS);
   if (score>best){ best=score; Store.best=best; }
 }
 
