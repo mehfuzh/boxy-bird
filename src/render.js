@@ -311,7 +311,7 @@ function draw(){
     // tiny credit, top-right corner of the sky
     ctx.font='10px Arial, sans-serif';
     ctx.fillStyle=T.creditColor; ctx.textAlign='right';
-    ctx.fillText('powered by ドーセント', W-10, 24);
+    ctx.fillText('powered by ドーセント', W-10, 24+SAFE_TOP);
     ctx.textAlign='center';
     if (hint) hint.textContent='';
   } else if (state==='start'){
@@ -347,16 +347,16 @@ function draw(){
     // extruded 3D score — shadow matches the logo lettering / pipes
     ctx.font='bold 52px sans-serif';
     ctx.fillStyle=T.pipeBorder;
-    for (let d=4; d>=1; d--) ctx.fillText(score, W/2+d, 84+d);
+    for (let d=4; d>=1; d--) ctx.fillText(score, W/2+d, 84+SAFE_TOP+d);
     ctx.lineWidth=6; ctx.lineJoin='round';
     ctx.strokeStyle=T.scoreStroke; ctx.fillStyle=T.scoreFill;
-    ctx.strokeText(score, W/2, 84); ctx.fillText(score, W/2, 84);
+    ctx.strokeText(score, W/2, 84+SAFE_TOP); ctx.fillText(score, W/2, 84+SAFE_TOP);
     // pro mode badge under the score
     if (proMode){
       ctx.font='bold 16px Arial, sans-serif';
       ctx.lineWidth=4; ctx.strokeStyle=T.proStroke; ctx.fillStyle=T.proFill;
-      ctx.strokeText('PRO MODE', W/2, 112);
-      ctx.fillText('PRO MODE', W/2, 112);
+      ctx.strokeText('PRO MODE', W/2, 112+SAFE_TOP);
+      ctx.fillText('PRO MODE', W/2, 112+SAFE_TOP);
     }
     if (hint) hint.textContent='';
   }

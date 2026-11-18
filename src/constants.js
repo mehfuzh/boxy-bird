@@ -1,6 +1,25 @@
 // ---- Easy-mode tuning + geometry ----
 const _canvas = document.getElementById("game");
-const W = _canvas.width, H = _canvas.height;
+// Native (Capacitor iOS): fill the whole screen. Logical width stays 480
+// so every tuning constant means the same thing; height follows the
+// device aspect ratio (taller phones just get more sky). The backing
+// store is scaled by devicePixelRatio for crisp rendering.
+const _native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const W = 480;
+let H = 640, VIEW_SCALE = 1, SAFE_TOP = 0;
+if (_native){
+  document.documentElement.classList.add('native');
+  H = Math.max(640, Math.round(W * window.innerHeight / window.innerWidth));
+  VIEW_SCALE = (window.devicePixelRatio || 1) * window.innerWidth / W;
+  // notch / Dynamic Island inset, converted to logical game pixels
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;visibility:hidden;height:env(safe-area-inset-top);';
+  document.body.appendChild(probe);
+  SAFE_TOP = probe.getBoundingClientRect().height * (W / window.innerWidth);
+  probe.remove();
+}
+_canvas.width = Math.round(W * VIEW_SCALE);
+_canvas.height = Math.round(H * VIEW_SCALE);
 const GRAVITY=0.32, FLAP_V=-6.0, PIPE_SPEED=2.0, PIPE_GAP=220;
 const PIPE_W=72, PIPE_SPACING=270, GROUND_H=90, BOX_X=130, BOX_SIZE=46, HIT_INSET=7;
 // game-over share button (below the game-over card)
