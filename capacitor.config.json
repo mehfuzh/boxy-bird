@@ -1,0 +1,9 @@
+{
+  "appId": "com.mehfuzh.boxybird",
+  "appName": "Boxy Bird",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#14202a"
+  }
+}
