@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Boxy Bird</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="keywords" content="boxy-bird, flappy-bird, flappy-bird-clone, ios, game, arcade-game, mobile-game, canvas, html5-canvas, javascript, web-audio, capacitor">
 <!-- share preview image (X / Twitter / Open Graph) -->
 <meta property="og:title" content="Boxy Bird">
 <meta property="og:description" content="A Flappy Bird clone where the bird is a cardboard box with an Amazon smile.">
@@ -44,6 +45,14 @@ const SHARE_BTN = { x:(W-190)/2, y:395, w:190, h:44 };
 const NEWGAME_BTN = { x:(W-220)/2, y:362, w:220, h:44 };
 const THEME_BTN   = { x:(W-220)/2, y:424, w:220, h:44 };
 const SOUND_BTN   = { x:(W-220)/2, y:486, w:220, h:44 };
+// splash block extents: title top (100) .. SOUND button bottom (530) + 6px depth
+const SPLASH_BLOCK_TOP = 100, SPLASH_BLOCK_BOT = 536;
+// vertical offset that centers the splash block on screen
+const SPLASH_DY = Math.round((H - SPLASH_BLOCK_TOP - SPLASH_BLOCK_BOT) / 2);
+// game-over block extents: card top (170) .. share button bottom (439) + 6px depth
+const DEAD_BLOCK_TOP = 170, DEAD_BLOCK_BOT = 445;
+// centers the game-over card + share button on screen
+const DEAD_DY = Math.round((H - DEAD_BLOCK_TOP - DEAD_BLOCK_BOT) / 2);
 // viral quick wins: milestone celebrations + pro mode speed-up
 const MILESTONES = [10, 25, 50];
 const PRO_AT = 25;           // score that triggers PRO MODE
@@ -190,7 +199,8 @@ function inBtn(b, sx, sy){
     sy >= b.y && sy <= b.y + b.h;
 }
 function inShareBtn(sx, sy){
-  return state==='dead' && inBtn(SHARE_BTN, sx, sy);
+  // share button is drawn shifted by DEAD_DY (see draw())
+  return state==='dead' && inBtn(SHARE_BTN, sx, sy - DEAD_DY);
 }
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
@@ -199,9 +209,10 @@ canvas.addEventListener('pointerdown', e => {
   const sy = (e.clientY - r.top) * (H / r.height);
   if (state==='splash'){
     ensureAudio();
-    if (inBtn(NEWGAME_BTN, sx, sy)) { state='start'; sndFlap(); return; }
-    if (inBtn(THEME_BTN, sx, sy)) { toggleTheme(); sndFlap(); return; }
-    if (inBtn(SOUND_BTN, sx, sy)) { sndOn = !sndOn; localStorage.setItem('boxySound', sndOn ? 'on' : 'off'); return; }
+    const by = sy - SPLASH_DY; // splash is drawn shifted by SPLASH_DY
+    if (inBtn(NEWGAME_BTN, sx, by)) { state='start'; sndFlap(); return; }
+    if (inBtn(THEME_BTN, sx, by)) { toggleTheme(); sndFlap(); return; }
+    if (inBtn(SOUND_BTN, sx, by)) { sndOn = !sndOn; localStorage.setItem('boxySound', sndOn ? 'on' : 'off'); return; }
     return;
   }
   if (inShareBtn(sx, sy)) { shareScore(); return; }
@@ -212,7 +223,7 @@ canvas.addEventListener('pointermove', e => {
   const sx = (e.clientX - r.left) * (W / r.width);
   const sy = (e.clientY - r.top) * (H / r.height);
   const overBtn = inShareBtn(sx, sy) ||
-    (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy) || inBtn(THEME_BTN, sx, sy) || inBtn(SOUND_BTN, sx, sy)));
+    (state==='splash' && (inBtn(NEWGAME_BTN, sx, sy-SPLASH_DY) || inBtn(THEME_BTN, sx, sy-SPLASH_DY) || inBtn(SOUND_BTN, sx, sy-SPLASH_DY)));
   canvas.style.cursor = overBtn ? 'pointer' : 'default';
 });
 canvas.addEventListener('pointerleave', () => { canvas.style.cursor = 'default'; });
@@ -528,6 +539,8 @@ function draw(){
 
   ctx.textAlign='center';
   if (state==='splash'){
+    // center the whole splash block vertically on screen
+    ctx.save(); ctx.translate(0, SPLASH_DY);
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
     ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
@@ -555,20 +568,26 @@ function draw(){
     drawMenuButton(NEWGAME_BTN, 'NEW GAME');
     drawMenuButton(THEME_BTN, 'THEME: ' + theme.toUpperCase());
     drawMenuButton(SOUND_BTN, 'SOUND: ' + (sndOn ? 'ON' : 'OFF'));
+    ctx.restore();
     ctx.font='10px Arial, sans-serif';
     ctx.fillStyle=T.creditColor; ctx.textAlign='right';
     ctx.fillText('powered by ドーセント', W-10, 24);
     ctx.textAlign='center';
     if (hint) hint.textContent='';
   } else if (state==='start'){
+    // same shifted position as the splash title (SPLASH_DY)
+    ctx.save(); ctx.translate(0, SPLASH_DY);
     drawTitle();
     ctx.font='bold 18px Arial, sans-serif'; ctx.lineWidth=4; ctx.lineJoin='round';
     ctx.strokeStyle=T.hintStroke; ctx.fillStyle='#fff';
     ctx.strokeText('Deliver the box through the pipes!', W/2, 185);
     ctx.fillText('Deliver the box through the pipes!', W/2, 185);
+    ctx.restore();
     if (hint) hint.textContent='Click, tap or press Space to flap';
   } else if (state==='dead'){
     ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
+    // center the card + share button vertically on screen
+    ctx.save(); ctx.translate(0, DEAD_DY);
     const pw=310, ph=200, px2=(W-pw)/2, py=170;
     draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
     ctx.textAlign='center';
@@ -588,6 +607,7 @@ function draw(){
       if (hint) hint.textContent='Click or press Space to play again';
     } else if (hint) hint.textContent='';
     drawShareButton();
+    ctx.restore();
   } else {
     // extruded 3D score — shadow matches the logo lettering / pipes
     ctx.font='bold 52px sans-serif';

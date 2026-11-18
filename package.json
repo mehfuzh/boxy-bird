@@ -11,7 +11,7 @@
     "ios:open": "npm run ios:sync && npx cap open ios",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["game", "canvas", "flappy-bird"],
+  "keywords": ["boxy-bird", "flappy-bird", "flappy-bird-clone", "ios", "game", "arcade-game", "mobile-game", "canvas", "html5-canvas", "javascript", "web-audio", "capacitor"],
   "author": "mehfuzh",
   "license": "Apache-2.0",
   "type": "commonjs",
