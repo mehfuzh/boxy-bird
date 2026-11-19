@@ -16,8 +16,22 @@ if (_native){
   });
 }
 
-function loop(){ update(); draw(); requestAnimationFrame(loop); }
-reset(); state='splash'; initInput(); loop();
+// Fixed-timestep simulation: update() always advances at 60Hz regardless
+// of display refresh rate (60/120/144Hz), so gameplay speed is identical
+// everywhere. Rendering happens once per animation frame.
+const STEP_MS = 1000 / 60;
+const MAX_FRAME_MS = 250; // cap catch-up after tab switches / long stalls
+let lastTime = performance.now();
+let accumulator = 0;
+
+function loop(now){
+  accumulator += Math.min(now - lastTime, MAX_FRAME_MS);
+  lastTime = now;
+  while (accumulator >= STEP_MS){ update(); accumulator -= STEP_MS; }
+  draw();
+  requestAnimationFrame(loop);
+}
+reset(); state='splash'; initInput(); requestAnimationFrame(loop);
 // WKWebView may only expose the safe-area insets after the first frame —
 // re-measure once so the score / splash / game-over never sit under the island
 if (_native) requestAnimationFrame(measureSafeTop);

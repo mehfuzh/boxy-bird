@@ -628,8 +628,21 @@ function draw(){
 }
 
 // ---- Boot ----
-function loop(){ update(); draw(); requestAnimationFrame(loop); }
-reset(); state='splash'; loop();
+// Fixed-timestep simulation: update() always advances at 60Hz regardless
+// of display refresh rate (60/120/144Hz), so gameplay speed is identical
+// everywhere. Rendering happens once per animation frame.
+const STEP_MS = 1000 / 60;
+const MAX_FRAME_MS = 250; // cap catch-up after tab switches / long stalls
+let lastTime = performance.now();
+let accumulator = 0;
+function loop(now){
+  accumulator += Math.min(now - lastTime, MAX_FRAME_MS);
+  lastTime = now;
+  while (accumulator >= STEP_MS){ update(); accumulator -= STEP_MS; }
+  draw();
+  requestAnimationFrame(loop);
+}
+reset(); state='splash'; requestAnimationFrame(loop);
 </script>
 </body>
 </html>
