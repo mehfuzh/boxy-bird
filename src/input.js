@@ -1,5 +1,7 @@
 // ---- input: flap, buttons, share, keyboard ----
 function flap(){
+  // explicit resume from auto-pause: this input must NOT also flap
+  if (paused){ paused=false; return; }
   if (state==='start') state='play';
   if (state==='play'){ box.vy=FLAP_V; Sfx.flap(); }
   else if (state==='dead' && deadTimer>45) reset();
@@ -71,4 +73,8 @@ function initInput(){
     }
     if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){ e.preventDefault(); flap(); }
   });
+  // auto-pause when the tab is hidden or the window loses focus mid-run,
+  // so players never come back to a dead box (issue #28)
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseIfPlaying(); });
+  window.addEventListener('blur', pauseIfPlaying);
 }

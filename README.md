@@ -9,6 +9,7 @@ Built with plain HTML5 Canvas and the Web Audio API — no frameworks, no depend
 - **Flap:** click, tap, or press `Space` / `↑` / `W`
 - **Game over → replay:** click or press `Space` after a short delay
 - **Back to splash:** press `Escape`
+- **Auto-pause:** switching tabs or apps mid-run pauses the game; click or press `Space` to resume (the resume input doesn't flap)
 - **Toggle sound:** use the SOUND button on the splash screen (persisted in `localStorage`)
 - **Switch theme:** use the THEME button on the splash screen — toggles between DEFAULT and HALLOWEEN (persisted in `localStorage`)
 

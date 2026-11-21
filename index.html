@@ -163,10 +163,11 @@ let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash, particl
 let best = +(SafeStorage.get('boxyBest') || 0);
 let theme = SafeStorage.get('boxyTheme') || 'default';
 let proMode = false;
+let paused = false; // auto-pause on tab/window focus loss (issue #28)
 
 function reset(){
   state='start'; box={y:H/2-60, vy:0, rot:0}; pipes=[]; score=0;
-  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false; particles=[];
+  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false; particles=[]; paused=false;
   for (let i=0;i<5;i++) clouds.push({x:Math.random()*W, y:40+Math.random()*180, s:30+Math.random()*40});
 }
 
@@ -226,6 +227,8 @@ const sndPro = () => { tone('square',220,440,0.12,0.18); tone('square',330,660,0
 // ---- Input ----
 function flap(){
   ensureAudio();
+  // explicit resume from auto-pause: this input must NOT also flap
+  if (paused){ paused=false; return; }
   if (state==='start') state='play';
   if (state==='play'){ box.vy=FLAP_V; sndFlap(); }
   else if (state==='dead' && deadTimer>45) reset();
@@ -290,6 +293,11 @@ window.addEventListener('keydown', e => {
   }
   if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){ e.preventDefault(); flap(); }
 });
+// auto-pause when the tab is hidden or the window loses focus mid-run,
+// so players never come back to a dead box (issue #28)
+function pauseIfPlaying(){ if (state==='play') paused=true; }
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseIfPlaying(); });
+window.addEventListener('blur', pauseIfPlaying);
 
 // ---- Update ----
 function spawnPipe(){
@@ -304,6 +312,7 @@ function die(){
   if (score>best){ best=score; SafeStorage.set('boxyBest', best); }
 }
 function update(){
+  if (paused) return; // freeze the whole simulation while paused
   frames++;
   if (flash>0) flash=Math.max(0, flash-0.06);
   updateParticles();
@@ -673,6 +682,19 @@ function draw(){
       ctx.fillText('PRO MODE', W/2, 112);
     }
     if (hint) hint.textContent='';
+    // auto-pause overlay: same themed 3D card style as game over
+    if (paused){
+      ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
+      const pw=310, ph=110, px2=(W-pw)/2, py=(H-ph)/2-30;
+      draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
+      ctx.textAlign='center';
+      ctx.font='bold 30px sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.fillText('PAUSED', W/2, py+50);
+      ctx.fillStyle=T.cardText; ctx.fillText('PAUSED', W/2, py+48);
+      ctx.font='16px sans-serif'; ctx.fillStyle=T.replayText;
+      ctx.fillText('Click or press Space to resume', W/2, py+84);
+      if (hint) hint.textContent='Paused — click or press Space to resume';
+    }
   }
   if (flash>0){ ctx.fillStyle='rgba(255,255,255,'+flash+')'; ctx.fillRect(0,0,W,H); }
 }
