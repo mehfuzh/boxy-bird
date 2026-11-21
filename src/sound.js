@@ -1,12 +1,12 @@
 // Tiny Web Audio helper: procedural sounds, no audio files needed.
 const Sound = (() => {
   let ctx = null;
-  let enabled = localStorage.getItem('boxySound') !== 'off';
+  let enabled = SafeStorage.get('boxySound') !== 'off';
 
   function isEnabled() { return enabled; }
   function setEnabled(v) {
     enabled = v;
-    localStorage.setItem('boxySound', v ? 'on' : 'off');
+    SafeStorage.set('boxySound', v ? 'on' : 'off');
   }
 
   function ensure() {

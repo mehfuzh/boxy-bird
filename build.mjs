@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync, writeFileSync, copyFileSync, existsSync } from
 const css = readFileSync("src/style.css", "utf8");
 // load order matters: each module uses globals defined by the ones above it
 const scripts = [
+  "src/storage.js",
   "src/sound.js",
   "src/constants.js",
   "src/store.js",

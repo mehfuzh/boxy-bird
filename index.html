@@ -106,9 +106,38 @@ const THEMES = {
   }
 };
 
+// ---- safe storage: localStorage with in-memory fallback ----
+// Sandboxed iframes / blocked site data make localStorage throw; fall back
+// to a session-only Map so the game always boots. Mirrors src/storage.js.
+const SafeStorage = (() => {
+  const mem = new Map();
+  let ls = null;
+  try {
+    ls = window.localStorage;
+    const probe = '__boxy_probe__';
+    ls.setItem(probe, '1');
+    ls.removeItem(probe);
+  } catch (e) { ls = null; }
+  return {
+    get(key) {
+      if (ls) {
+        try { return ls.getItem(key); } catch (e) { ls = null; }
+      }
+      return mem.has(key) ? mem.get(key) : null;
+    },
+    set(key, value) {
+      const v = String(value);
+      mem.set(key, v);
+      if (ls) {
+        try { ls.setItem(key, v); } catch (e) { ls = null; }
+      }
+    },
+  };
+})();
+
 let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash, particles = [];
-let best = +(localStorage.getItem('boxyBest') || 0);
-let theme = localStorage.getItem('boxyTheme') || 'default';
+let best = +(SafeStorage.get('boxyBest') || 0);
+let theme = SafeStorage.get('boxyTheme') || 'default';
 let proMode = false;
 
 function reset(){
@@ -143,12 +172,12 @@ function updateParticles(){
 
 function toggleTheme(){
   theme = theme === 'default' ? 'halloween' : 'default';
-  localStorage.setItem('boxyTheme', theme);
+  SafeStorage.set('boxyTheme', theme);
 }
 
 // ---- Sound (Web Audio, synthesized - no files needed) ----
 let audioCtx=null;
-let sndOn = localStorage.getItem('boxySound') !== 'off';
+let sndOn = SafeStorage.get('boxySound') !== 'off';
 function ensureAudio(){
   if (!audioCtx){ try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
   if (audioCtx && audioCtx.state==='suspended') audioCtx.resume();
@@ -212,7 +241,7 @@ canvas.addEventListener('pointerdown', e => {
     const by = sy - SPLASH_DY; // splash is drawn shifted by SPLASH_DY
     if (inBtn(NEWGAME_BTN, sx, by)) { state='start'; sndFlap(); return; }
     if (inBtn(THEME_BTN, sx, by)) { toggleTheme(); sndFlap(); return; }
-    if (inBtn(SOUND_BTN, sx, by)) { sndOn = !sndOn; localStorage.setItem('boxySound', sndOn ? 'on' : 'off'); return; }
+    if (inBtn(SOUND_BTN, sx, by)) { sndOn = !sndOn; SafeStorage.set('boxySound', sndOn ? 'on' : 'off'); return; }
     return;
   }
   if (inShareBtn(sx, sy)) { shareScore(); return; }
@@ -248,7 +277,7 @@ function die(){
   state='dead'; deadTimer=0; flash=0.7; sndCrash();
   // death puff: dusty grey burst as the box tips over
   spawnParticles(BOX_X, box.y, 14, DEATH_COLORS);
-  if (score>best){ best=score; localStorage.setItem('boxyBest', best); }
+  if (score>best){ best=score; SafeStorage.set('boxyBest', best); }
 }
 function update(){
   frames++;

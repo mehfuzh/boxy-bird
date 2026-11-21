@@ -9,7 +9,7 @@
     "assets": "node make-icon.mjs",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npm run ios:sync && npx cap open ios",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "keywords": ["boxy-bird", "flappy-bird", "flappy-bird-clone", "ios", "game", "arcade-game", "mobile-game", "canvas", "html5-canvas", "javascript", "web-audio", "capacitor"],
   "author": "mehfuzh",

@@ -1,7 +1,7 @@
-// ---- persistence (localStorage) ----
+// ---- persistence (SafeStorage: localStorage with in-memory fallback) ----
 const Store = {
-  get best(){ return +(localStorage.getItem('boxyBest') || 0); },
-  set best(v){ localStorage.setItem('boxyBest', v); },
-  get theme(){ return localStorage.getItem('boxyTheme') || 'default'; },
-  set theme(v){ localStorage.setItem('boxyTheme', v); },
+  get best(){ return +(SafeStorage.get('boxyBest') || 0); },
+  set best(v){ SafeStorage.set('boxyBest', v); },
+  get theme(){ return SafeStorage.get('boxyTheme') || 'default'; },
+  set theme(v){ SafeStorage.set('boxyTheme', v); },
 };
