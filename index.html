@@ -62,6 +62,30 @@ const MILESTONE_COLORS = ['#ffd94a', '#ff8c00', '#4ec0ca', '#96D955'];
 const PRO_COLORS = ['#ff4444', '#ffd94a', '#ff8c00'];
 const DEATH_COLORS = ['#999', '#bbb', '#777'];
 
+// ---- pure game rules (hitbox, scoring triggers, pipe bounds) ----
+// Mirrors src/rules.js; unit-tested via npm test (test/rules.test.mjs).
+function hitsFloor(boxY, height){
+  // floor death uses the FULL box — deliberately unforgiving
+  return boxY + BOX_SIZE / 2 >= height - GROUND_H;
+}
+function hitsPipe(boxY, pipe){
+  // forgiving hitbox: inset HIT_INSET px on every side
+  const bx = BOX_X - BOX_SIZE/2 + HIT_INSET;
+  const by = boxY - BOX_SIZE/2 + HIT_INSET;
+  const bs = BOX_SIZE - HIT_INSET*2;
+  if (!(bx + bs > pipe.x && bx < pipe.x + PIPE_W)) return false;
+  return by < pipe.gapTop || by + bs > pipe.gapTop + PIPE_GAP;
+}
+// what reaching `score` triggers (milestone fanfare/confetti, PRO MODE)
+function nextScoreState(score){
+  return { milestone: MILESTONES.includes(score), pro: score === PRO_AT };
+}
+// vertical bounds for a pipe's gap top — always fully on-screen
+function pipeGapBounds(height, safeTop){
+  const minTop = 70 + safeTop;
+  return { minTop, maxTop: height - GROUND_H - PIPE_GAP - 70 };
+}
+
 // ---- Theme palettes ----
 const THEMES = {
   default: {
@@ -269,7 +293,7 @@ window.addEventListener('keydown', e => {
 
 // ---- Update ----
 function spawnPipe(){
-  const minTop=70, maxTop=H-GROUND_H-PIPE_GAP-70;
+  const {minTop, maxTop} = pipeGapBounds(H, 0);
   pipes.push({x:W+20, gapTop:minTop+Math.random()*(maxTop-minTop), scored:false});
 }
 function die(){
@@ -316,22 +340,19 @@ function update(){
     p.x-=spd;
     if (!p.scored && p.x+PIPE_W < BOX_X){
       p.scored=true; score++; sndScore();
+      const ev = nextScoreState(score);
       // milestone celebrations: confetti burst + fanfare at 10/25/50
-      if (MILESTONES.includes(score)){ flash=0.3; sndMilestone(); spawnParticles(BOX_X, box.y, 30, MILESTONE_COLORS); }
+      if (ev.milestone){ flash=0.3; sndMilestone(); spawnParticles(BOX_X, box.y, 30, MILESTONE_COLORS); }
       // pro mode kicks in at PRO_AT: pipes scroll faster + big burst
-      if (score===PRO_AT){ proMode=true; flash=0.4; sndPro(); spawnParticles(BOX_X, box.y, 50, PRO_COLORS); }
+      if (ev.pro){ proMode=true; flash=0.4; sndPro(); spawnParticles(BOX_X, box.y, 50, PRO_COLORS); }
     }
   }
   pipes = pipes.filter(p => p.x > -PIPE_W-10);
   groundX = (groundX-spd)%48;
 
-  const bx=BOX_X-BOX_SIZE/2+HIT_INSET, by=box.y-BOX_SIZE/2+HIT_INSET, bs=BOX_SIZE-HIT_INSET*2;
-  const floor=H-GROUND_H;
-  if (box.y+BOX_SIZE/2>=floor){ box.y=floor-BOX_SIZE/2; die(); return; }
+  if (hitsFloor(box.y, H)){ box.y=H-GROUND_H-BOX_SIZE/2; die(); return; }
   for (const p of pipes){
-    if (bx+bs>p.x && bx<p.x+PIPE_W){
-      if (by<p.gapTop || by+bs>p.gapTop+PIPE_GAP){ die(); return; }
-    }
+    if (hitsPipe(box.y, p)){ die(); return; }
   }
 }
 
