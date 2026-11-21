@@ -14,7 +14,7 @@ function reset(){
 
 function spawnPipe(){
   // keep gaps below the notch / Dynamic Island so they're always visible
-  const minTop=70+SAFE_TOP, maxTop=H-GROUND_H-PIPE_GAP-70;
+  const {minTop, maxTop} = pipeGapBounds(H, SAFE_TOP);
   pipes.push({x:W+20, gapTop:minTop+Math.random()*(maxTop-minTop), scored:false});
 }
 
@@ -85,16 +85,17 @@ function update(){
     p.x-=spd;
     if (!p.scored && p.x+PIPE_W < BOX_X){
       p.scored=true; score++; Sfx.score();
-        // milestone celebrations: confetti burst + fanfare at 10/25/50
-        if (MILESTONES.includes(score)){
-          flash=0.3; Sfx.milestone();
-          spawnParticles(BOX_X, box.y, 30, MILESTONE_COLORS);
-        }
-        // pro mode kicks in at PRO_AT: pipes scroll faster + big burst
-        if (score===PRO_AT){
-          proMode=true; flash=0.4; Sfx.pro();
-          spawnParticles(BOX_X, box.y, 50, PRO_COLORS);
-        }
+      const ev = nextScoreState(score);
+      // milestone celebrations: confetti burst + fanfare at 10/25/50
+      if (ev.milestone){
+        flash=0.3; Sfx.milestone();
+        spawnParticles(BOX_X, box.y, 30, MILESTONE_COLORS);
+      }
+      // pro mode kicks in at PRO_AT: pipes scroll faster + big burst
+      if (ev.pro){
+        proMode=true; flash=0.4; Sfx.pro();
+        spawnParticles(BOX_X, box.y, 50, PRO_COLORS);
+      }
     }
   }
   pipes = pipes.filter(p => p.x > -PIPE_W-10);

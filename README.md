@@ -74,6 +74,7 @@ The sound on/off preference is stored under `boxySound` (see Persistence above).
 │   ├── storage.js        # SafeStorage — localStorage with in-memory fallback
 │   ├── sound.js          # Web Audio module — exposes window.BoxySound (5 sounds)
 │   ├── constants.js      # Tuning + geometry, button rects, milestones, PRO mode, confetti palettes
+│   ├── rules.js          # Pure game rules: hitbox, scoring triggers, pipe bounds (unit-tested)
 │   ├── store.js          # Store — persisted best score + theme via SafeStorage
 │   ├── world.js          # World state, physics, pipes, confetti particles, theme toggle
 │   ├── collision.js      # Hit detection + death (forgiving hitbox)
@@ -82,7 +83,8 @@ The sound on/off preference is stored under `boxySound` (see Persistence above).
 │   ├── main.js           # Entry point: canvas setup + fixed-timestep loop / boot
 │   └── style.css         # Page layout styles (centred canvas, dark background)
 ├── test/
-│   └── safe-storage.test.mjs  # Node test-runner tests for SafeStorage
+│   ├── safe-storage.test.mjs  # SafeStorage: blocked/throwing localStorage fallbacks
+│   └── rules.test.mjs         # Gameplay: collisions, hitbox inset, scoring, milestones, PRO mode
 ├── build.mjs             # Builds dist/index.html (inlines CSS + JS in dependency order, adds OG meta tags)
 ├── make-icon.mjs         # Generates assets/icon-only.png + splash images (npm run assets)
 ├── make-og-image.mjs     # Pure-Node PNG encoder; generates og-image.png (1200×630)
@@ -113,7 +115,7 @@ npm run build   # → dist/index.html + dist/og-image.png
 npm test        # node --test (test/*.test.mjs)
 ```
 
-The `dist/` folder is what gets deployed to GitHub Pages (`https://mehfuzh.github.io/boxy-bird/`). Tests run with Node's built-in test runner — currently `test/safe-storage.test.mjs` covers the storage fallback behaviour.
+The `dist/` folder is what gets deployed to GitHub Pages (`https://mehfuzh.github.io/boxy-bird/`). Tests run with Node's built-in test runner (`npm test`, no test dependencies): `test/safe-storage.test.mjs` covers storage fallbacks, and `test/rules.test.mjs` loads the real source files in a `vm` to cover floor/pipe collisions, the forgiving hitbox, score-on-pass, milestones at 10/25/50, PRO mode at 25, and pipe spawn bounds.
 
 ## 📱 iOS App (Capacitor)
 

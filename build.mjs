@@ -10,6 +10,7 @@ const scripts = [
   "src/storage.js",
   "src/sound.js",
   "src/constants.js",
+  "src/rules.js",
   "src/store.js",
   "src/world.js",
   "src/collision.js",
