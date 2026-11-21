@@ -369,6 +369,19 @@ function draw(){
       ctx.fillText('PRO MODE', W/2, 112+SAFE_TOP);
     }
     if (hint) hint.textContent='';
+    // auto-pause overlay: same themed 3D card style as game over
+    if (paused){
+      ctx.fillStyle=T.overlay; ctx.fillRect(0,0,W,H);
+      const pw=310, ph=110, px2=(W-pw)/2, py=(H-ph)/2-30;
+      draw3DPanel(px2,py,pw,ph,14,7,T.cardTop,T.cardBot,T.cardEdge);
+      ctx.textAlign='center';
+      ctx.font='bold 30px sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.fillText('PAUSED', W/2, py+50);
+      ctx.fillStyle=T.cardText; ctx.fillText('PAUSED', W/2, py+48);
+      ctx.font='16px sans-serif'; ctx.fillStyle=T.replayText;
+      ctx.fillText('Click or press Space to resume', W/2, py+84);
+      if (hint) hint.textContent='Paused — click or press Space to resume';
+    }
   }
   if (flash>0){ ctx.fillStyle='rgba(255,255,255,'+flash+')'; ctx.fillRect(0,0,W,H); }
 }

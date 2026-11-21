@@ -5,10 +5,11 @@ let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash, particl
 let best = Store.best;
 let theme = Store.theme;
 let proMode = false;
+let paused = false; // auto-pause on tab/window focus loss (issue #28)
 
 function reset(){
   state='start'; box={y:H/2-60, vy:0, rot:0}; pipes=[]; score=0;
-  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false; particles=[];
+  frames=0; deadTimer=0; flash=0; groundX=0; clouds=[]; proMode=false; particles=[]; paused=false;
   for (let i=0;i<5;i++) clouds.push({x:Math.random()*W, y:40+Math.random()*180, s:30+Math.random()*40});
 }
 
@@ -47,7 +48,11 @@ function toggleTheme(){
   Store.theme = theme;
 }
 
+// freeze the whole simulation while paused (tab/window lost focus mid-run)
+function pauseIfPlaying(){ if (state==='play') paused=true; }
+
 function update(){
+  if (paused) return;
   frames++;
   if (flash>0) flash=Math.max(0, flash-0.06);
   updateParticles();
