@@ -7,6 +7,7 @@
     "start": "open index.html",
     "build": "node build.mjs",
     "assets": "node make-icon.mjs",
+    "screenshot": "node make-screenshot.mjs",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npm run ios:sync && npx cap open ios",
     "test": "node --test"

@@ -5,7 +5,7 @@ A Flappy Bird clone where the bird is a cardboard box with an Amazon smile.
 Built with plain HTML5 Canvas and the Web Audio API — no frameworks, no dependencies, no asset files. All graphics are drawn procedurally and all sounds are generated in code.
 
 <p align="center">
-  <img src="assets/splash.png" alt="Boxy Bird — title screen with the cardboard box and NEW GAME button" width="320">
+  <img src="assets/screenshot.png" alt="Boxy Bird web portal — the game canvas with player stats, theme picker and how-to-play panels" width="900">
 </p>
 
 ## 🎮 How to Play
