@@ -47,7 +47,7 @@ function loadSim() {
     milestone() { ctx.events.push('milestone'); },
     pro() { ctx.events.push('pro'); },
   };
-  const files = ['storage.js', 'constants.js', 'rules.js', 'store.js', 'world.js', 'collision.js'];
+  const files = ['storage.js', 'constants.js', 'rules.js', 'themes.js', 'store.js', 'world.js', 'collision.js'];
   vm.runInContext(files.map(read).join('\n'), ctx);
   const run = expr => vm.runInContext(expr, ctx);
   run('reset()');
@@ -264,4 +264,75 @@ test('spawnPipe always lands inside the bounds', () => {
     assert.ok(top >= minTop && top <= maxTop, `gapTop ${top} within [${minTop}, ${maxTop}]`);
     assert.equal(sim.run('pipes[0].scored'), false);
   }
+});
+
+// ---------- themes: cycle + validation (issue #32) ----------
+
+test('nextThemeName cycles through the list and wraps around', () => {
+  const q = loadRules();
+  const names = "['default','halloween','winter']";
+  assert.equal(q(`nextThemeName('default', ${names})`), 'halloween');
+  assert.equal(q(`nextThemeName('halloween', ${names})`), 'winter');
+  assert.equal(q(`nextThemeName('winter', ${names})`), 'default');
+});
+
+test('nextThemeName falls back to the first theme for unknown names', () => {
+  const q = loadRules();
+  assert.equal(q(`nextThemeName('bogus', ['default','halloween','winter'])`), 'default');
+});
+
+test('isThemeName accepts known names and rejects everything else', () => {
+  const q = loadRules();
+  const names = "['default','halloween','winter']";
+  for (const n of ['default', 'halloween', 'winter'])
+    assert.equal(q(`isThemeName('${n}', ${names})`), true);
+  for (const n of ['bogus', 'DEFAULT', ''])
+    assert.equal(q(`isThemeName('${n}', ${names})`), false);
+});
+
+test('THEMES contains default, summer, fall, halloween and winter, all with the same keys', () => {
+  const sim = loadSim();
+  // JSON round-trip: vm-realm arrays fail deepStrictEqual against host arrays
+  const names = JSON.parse(sim.run('JSON.stringify(Object.keys(THEMES))'));
+  assert.deepEqual(names, ['default', 'summer', 'fall', 'halloween', 'winter']);
+  const keys = JSON.parse(sim.run('JSON.stringify(Object.keys(THEMES.default).sort())'));
+  for (const n of names.slice(1))
+    assert.deepEqual(JSON.parse(sim.run(`JSON.stringify(Object.keys(THEMES['${n}']).sort())`)), keys,
+      `${n} palette covers every themed element`);
+});
+
+test('cycleTheme walks every theme in order, wraps, and persists each choice', () => {
+  const sim = loadSim();
+  // fixed start, independent of today's season: seed BOTH the stored
+  // value and the live variable (boot already picked the seasonal theme)
+  sim.run(`Store.theme = 'default'; theme = 'default';`);
+  assert.equal(sim.run('theme'), 'default');
+  for (const expected of ['summer', 'fall', 'halloween', 'winter', 'default']) {
+    sim.run('cycleTheme()');
+    assert.equal(sim.run('theme'), expected);
+    assert.equal(sim.run('Store.theme'), expected); // persisted (memory fallback)
+  }
+});
+
+test('Store.theme falls back to the season for unknown or missing stored values', () => {
+  const sim = loadSim();
+  const seasonal = sim.run('seasonalThemeName(new Date())'); // player's local month
+  assert.equal(sim.run('Store.theme'), seasonal); // nothing stored yet
+  sim.run(`SafeStorage.set('boxyTheme', 'bogus')`);
+  assert.equal(sim.run('Store.theme'), seasonal);
+  sim.run(`SafeStorage.set('boxyTheme', 'winter')`);
+  assert.equal(sim.run('Store.theme'), 'winter'); // manual choice always wins
+});
+
+test('seasonalThemeName maps the local month to a season palette', () => {
+  const q = loadRules();
+  // fixed dates → deterministic, regardless of when the suite runs.
+  // month arg is 0-based, in the date's LOCAL timezone.
+  const seasonAt = month => q(`seasonalThemeName(new Date(2026, ${month}, 15))`);
+  for (const m of [10, 11, 0, 1]) assert.equal(seasonAt(m), 'winter');
+  for (const m of [2, 3, 4]) assert.equal(seasonAt(m), 'default');
+  for (const m of [5, 6, 7]) assert.equal(seasonAt(m), 'summer');
+  for (const m of [8, 9]) assert.equal(seasonAt(m), 'fall');
+  // late November boots winter, as requested for this time of year
+  assert.equal(q(`seasonalThemeName(new Date(2026, 10, 25))`), 'winter');
 });

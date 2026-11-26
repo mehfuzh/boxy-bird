@@ -25,3 +25,24 @@ function pipeGapBounds(height, safeTop){
   const minTop = 70 + safeTop;
   return { minTop, maxTop: height - GROUND_H - PIPE_GAP - 70 };
 }
+// ---- themes (issue #32) ----
+// Pure helpers over an ordered list of theme names (Object.keys(THEMES)),
+// so adding a palette to THEMES automatically joins the button cycle.
+function isThemeName(name, names){
+  return names.includes(name);
+}
+// next theme in the cycle; unknown current names wrap back to the first
+function nextThemeName(current, names){
+  return names[(names.indexOf(current) + 1) % names.length];
+}
+// season → theme for a first visit (no stored choice). Uses the date's
+// LOCAL month, i.e. the player's own timezone via `new Date()`:
+// Nov–Feb winter · Mar–May default (spring) · Jun–Aug summer · Sep–Oct fall.
+// Halloween stays a manual pick in the cycle.
+function seasonalThemeName(date){
+  const m = date.getMonth(); // 0 = January, local time
+  if (m >= 10 || m <= 1) return 'winter';
+  if (m <= 4) return 'default';
+  if (m <= 7) return 'summer';
+  return 'fall';
+}

@@ -4,6 +4,10 @@ A Flappy Bird clone where the bird is a cardboard box with an Amazon smile.
 
 Built with plain HTML5 Canvas and the Web Audio API — no frameworks, no dependencies, no asset files. All graphics are drawn procedurally and all sounds are generated in code.
 
+<p align="center">
+  <img src="assets/splash.png" alt="Boxy Bird — title screen with the cardboard box and NEW GAME button" width="320">
+</p>
+
 ## 🎮 How to Play
 
 - **Flap:** click, tap, or press `Space` / `↑` / `W`
@@ -11,7 +15,7 @@ Built with plain HTML5 Canvas and the Web Audio API — no frameworks, no depend
 - **Back to splash:** press `Escape`
 - **Auto-pause:** switching tabs or apps mid-run pauses the game; click or press `Space` to resume (the resume input doesn't flap)
 - **Toggle sound:** use the SOUND button on the splash screen (persisted in `localStorage`)
-- **Switch theme:** use the THEME button on the splash screen — toggles between DEFAULT and HALLOWEEN (persisted in `localStorage`)
+- **Switch theme:** use the THEME button on the splash screen (or the portal's Theme panel) — cycles DEFAULT → SUMMER → FALL → HALLOWEEN → WINTER (persisted in `localStorage`; first visit auto-picks the current season for your timezone)
 
 The game starts in **easy mode**: forgiving hitbox, generous pipe gap, and a low gravity constant make it approachable while still rewarding timing. At score **25**, **PRO MODE** kicks in and the pipes scroll faster.
 
@@ -34,14 +38,17 @@ Easy mode doesn't stay easy forever — the game celebrates progress and then ra
 
 ## 🎨 Themes
 
-Two full colour palettes live in `THEMES` (`src/render.js`); every drawn element — sky, clouds, pipes, ground, cards, buttons, title, score, PRO badge — is themed:
+Five full colour palettes live in `THEMES` (`src/themes.js`); every drawn element — sky, clouds, pipes, ground, cards, buttons, title, score, PRO badge — is themed:
 
-| Theme       | Look                                                          |
-|-------------|---------------------------------------------------------------|
-| `default`   | Classic teal sky, green pipes, sandy ground                   |
-| `halloween` | Deep purple night sky, orange pipes, dark violet ground       |
+| Theme       | Look                                                          | Season (auto-pick) |
+|-------------|---------------------------------------------------------------|--------------------|
+| `default`   | Classic teal sky, green pipes, sandy ground                   | Mar–May (spring)   |
+| `summer`    | Bright blue sky into a golden horizon, amber pipes, sunny sand | Jun–Aug           |
+| `fall`      | Warm amber sky, rust-brown pipes, autumn-leaf ground          | Sep–Oct            |
+| `halloween` | Deep purple night sky, orange pipes, dark violet ground       | manual pick        |
+| `winter`    | Icy blue sky, frosted blue pipes, snow-dusted white ground    | Nov–Feb            |
 
-The THEME button on the splash screen toggles between them (`toggleTheme()` in `src/world.js`); the choice persists across sessions.
+With no stored choice, the game boots in the palette for the current season in the **player's local timezone** (`seasonalThemeName(new Date())` in `src/rules.js`) — e.g. winter in late November. The THEME button on the splash screen and the portal's Theme panel cycle/select through them (`cycleTheme()` in `src/world.js`, driven by `Object.keys(THEMES)` — new palettes join automatically); a manual choice persists across sessions and always wins over the seasonal pick, and unknown stored values fall back to the season on load.
 
 ## 💾 Persistence
 
@@ -51,7 +58,7 @@ All preferences go through `SafeStorage` (`src/storage.js`): a `localStorage` wr
 |-------------|-------------------------------------------|
 | `boxyBest`  | Best score                                |
 | `boxySound` | Sound on/off (`on` / `off`)               |
-| `boxyTheme` | Selected theme (`default` / `halloween`)  |
+| `boxyTheme` | Selected theme (`default` / `summer` / `fall` / `halloween` / `winter`, validated on load; unset → current season) |
 
 ## 🔊 Sound
 
@@ -79,10 +86,12 @@ The sound on/off preference is stored under `boxySound` (see Persistence above).
 │   ├── store.js          # Store — persisted best score + theme via SafeStorage
 │   ├── world.js          # World state, physics, pipes, confetti particles, theme toggle
 │   ├── collision.js      # Hit detection + death (forgiving hitbox)
-│   ├── render.js         # Theme palettes (default / halloween) + all procedural drawing
+│   ├── themes.js         # Theme palettes (default / summer / fall / halloween / winter), pure data
+│   ├── render.js         # All procedural drawing (uses THEMES from themes.js)
 │   ├── input.js          # Input: flap, splash buttons, share, keyboard
 │   ├── main.js           # Entry point: canvas setup + fixed-timestep loop / boot
-│   └── style.css         # Page layout styles (centred canvas, dark background)
+│   ├── portal.js         # Portal chrome: mirrors live game state into the surrounding info panels (web only)
+│   └── style.css         # Portal page layout: centred game + stats / how-to panels (hidden on native iOS)
 ├── test/
 │   ├── safe-storage.test.mjs  # SafeStorage: blocked/throwing localStorage fallbacks
 │   └── rules.test.mjs         # Gameplay: collisions, hitbox inset, scoring, milestones, PRO mode
@@ -100,8 +109,8 @@ The sound on/off preference is stored under `boxySound` (see Persistence above).
 
 The repo ships two equivalent code paths:
 
-1. **`index.html`** — a single file with all JS and CSS inlined. Open it directly in a browser to play. This is what `npm start` opens.
-2. **`src/` modules + `build.mjs`** — the same game split into the modules listed above. Running `npm run build` inlines them into `dist/index.html` in dependency order (`storage` → `sound` → `constants` → `store` → `world` → `collision` → `render` → `input` → `main`), plus OG meta tags, for deployment.
+1. **`index.html`** — a single file with all JS and CSS inlined, presented as a gaming-portal page: the game sits in a centered arcade frame with live player stats, how-to-play, milestones, theme picker and sound controls in panels around it (the chrome hides itself in the native iOS app). Open it directly in a browser to play. This is what `npm start` opens.
+2. **`src/` modules + `build.mjs`** — the same game split into the modules listed above. Running `npm run build` inlines them into `dist/index.html` in dependency order (`storage` → `sound` → `constants` → `rules` → `themes` → `store` → `world` → `collision` → `render` → `input` → `main` → `portal`), plus OG meta tags and the portal page markup (stats, how-to-play, milestones, theme/sound panels around the centred game), for deployment.
 
 Both paths produce identical gameplay; the split `src/` version is the canonical source for development, and `index.html` must be kept in sync with it.
 

@@ -1,46 +1,5 @@
-// ---- theme palettes ----
-const THEMES = {
-  default: {
-    skyTop:'#4ec0ca', skyBot:'#9adfe4',
-    cloud:'rgba(255,255,255,0.85)',
-    pipeMain:'#73BF2E', pipeHi:'#96D955', pipeBorder:'#2e5b0e',
-    groundBase:'#ded895', groundTop:'#5ee270', groundAccent:'#45c855',
-    groundDiag:'rgba(202,190,110,0.65)',
-    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
-    cardBg:'#fffbe9', cardBorder:'#3d2b14', cardText:'#3d2b14',
-    cardTop:'#fffdf2', cardBot:'#f2e3b6', cardEdge:'#b9a06a',
-    titleColor:'#f5dd8f', titleShadow:'#3d2b14',
-    btnFill:'#fffbe9', btnBorder:'#3d2b14', btnText:'#3d2b14',
-    btnTop:'#fffdf2', btnBot:'#f2e3b6', btnEdge:'#b9a06a',
-    scoreFill:'#fff', scoreStroke:'#3d2b14',
-    proFill:'#ffd94a', proStroke:'#3d2b14',
-    overlay:'rgba(0,0,0,0.35)',
-    hintStroke:'rgba(61,43,20,.85)',
-    creditColor:'rgba(61,43,20,0.55)',
-    proCardText:'#c0392b',
-    replayText:'#7a5c2e',
-  },
-  halloween: {
-    skyTop:'#1a0a2e', skyBot:'#2d1b4e',
-    cloud:'rgba(120,90,160,0.4)',
-    pipeMain:'#e85d04', pipeHi:'#ff8c00', pipeBorder:'#8b3a00',
-    groundBase:'#1a1a2e', groundTop:'#3d2b5a', groundAccent:'#2d1b4e',
-    groundDiag:'rgba(60,40,90,0.5)',
-    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
-    cardBg:'#2d1b4e', cardBorder:'#ff8c00', cardText:'#ff8c00',
-    cardTop:'#3d2b5a', cardBot:'#2d1b4e', cardEdge:'#1a0a2e',
-    titleColor:'#ff8c00', titleShadow:'#1a0a2e',
-    btnFill:'#2d1b4e', btnBorder:'#ff8c00', btnText:'#ff8c00',
-    btnTop:'#3d2b5a', btnBot:'#2d1b4e', btnEdge:'#1a0a2e',
-    scoreFill:'#ff8c00', scoreStroke:'#1a0a2e',
-    proFill:'#ff4444', proStroke:'#1a0a2e',
-    overlay:'rgba(20,5,30,0.5)',
-    hintStroke:'rgba(26,10,46,.85)',
-    creditColor:'rgba(255,140,0,0.55)',
-    proCardText:'#ff6b6b',
-    replayText:'#c9a0dc',
-  }
-};
+// Theme palettes live in src/themes.js (loaded before store/world, which
+// validate the stored theme against THEMES at load time).
 
 // ---- drawing (all procedural, no assets) ----
 // 7x7 chunky block bitmaps for the title — Flappy-Bird-style fat

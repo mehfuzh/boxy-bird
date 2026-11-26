@@ -45,7 +45,7 @@ function initInput(){
     if (state==='splash'){
       const by = sy - SPLASH_DY;
       if (inBtn(NEWGAME_BTN, sx, by)) { state='start'; Sfx.flap(); return; }
-      if (inBtn(THEME_BTN, sx, by)) { toggleTheme(); Sfx.flap(); return; }
+      if (inBtn(THEME_BTN, sx, by)) { cycleTheme(); Sfx.flap(); return; }
       if (inBtn(SOUND_BTN, sx, by)) { Sfx.setEnabled(!Sfx.isEnabled()); return; }
       return;
     }

@@ -43,8 +43,10 @@ function updateParticles(){
   }
 }
 
-function toggleTheme(){
-  theme = theme === 'default' ? 'halloween' : 'default';
+// cycle through every palette in THEMES (issue #32) — adding a theme
+// there automatically extends the button cycle, no changes needed here
+function cycleTheme(){
+  theme = nextThemeName(theme, Object.keys(THEMES));
   Store.theme = theme;
 }
 

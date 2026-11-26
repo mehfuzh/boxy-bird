@@ -21,13 +21,111 @@
 <meta name="twitter:image:alt" content="Boxy Bird — a cardboard box bird flapping through pipes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E📦%3C/text%3E%3C/svg%3E">
 <style>
-  html, body { margin:0; padding:0; height:100%; background:radial-gradient(circle at 50% 35%, #2b4250 0%, #14202a 75%); display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif; }
-  canvas { display:block; background:#70c5ce; border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.65), 0 0 0 4px rgba(255,255,255,.07); max-width:96vw; max-height:96vh; }
-  #hint { position:fixed; left:0; right:0; top:10px; text-align:center; color:#fff; font-weight:700; font-size:14px; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.45); }
+  html, body { margin:0; padding:0; min-height:100%; background:radial-gradient(circle at 50% 35%, #2b4250 0%, #14202a 75%); font-family:Arial, sans-serif; overscroll-behavior:none; }
+  .portal { max-width:1180px; margin:0 auto; padding:22px 16px 40px; display:flex; flex-direction:column; gap:20px; color:#dfe9f0; }
+  .portal-header { text-align:center; }
+  .portal-header h1 { margin:0; font-size:30px; letter-spacing:3px; color:#f5dd8f; text-shadow:0 3px 0 #3d2b14, 0 6px 18px rgba(0,0,0,.5); }
+  .portal-header p { margin:6px 0 0; font-size:14px; color:#9fb4c2; }
+  .layout { display:grid; grid-template-columns:250px minmax(0,1fr) 250px; gap:20px; align-items:start; }
+  .stage-col { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .panel-col { display:flex; flex-direction:column; gap:20px; }
+  .panel { background:rgba(18,30,40,.72); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:16px 18px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+  .panel h2 { margin:0 0 12px; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#f5dd8f; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .stat { background:rgba(255,255,255,.05); border-radius:10px; padding:10px 8px; text-align:center; }
+  .stat .label { display:block; font-size:10px; letter-spacing:1.5px; color:#9fb4c2; text-transform:uppercase; }
+  .stat .value { display:block; margin-top:2px; font-size:22px; font-weight:bold; color:#fff; }
+  #statPro { opacity:.25; }
+  #statPro.on { opacity:1; color:#ffd94a; text-shadow:0 0 12px rgba(255,217,74,.55); }
+  .status-row { display:flex; justify-content:space-between; margin-top:12px; font-size:12px; letter-spacing:1px; color:#9fb4c2; }
+  #statusLabel { font-weight:bold; color:#96D955; }
+  .portal-btn { width:100%; margin-top:12px; padding:12px; border-radius:10px; border:2px solid #3d2b14; background:linear-gradient(#fffdf2,#f2e3b6); color:#3d2b14; font:bold 15px Arial, sans-serif; letter-spacing:1px; cursor:pointer; box-shadow:0 4px 0 #b9a06a; }
+  .portal-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #b9a06a; }
+  .portal-btn.secondary { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.2); color:#dfe9f0; box-shadow:0 4px 0 rgba(0,0,0,.4); font-size:13px; }
+  #themeList { display:flex; flex-direction:column; gap:8px; }
+  .theme-option { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.05); color:#dfe9f0; font:600 13px Arial, sans-serif; text-transform:capitalize; cursor:pointer; }
+  .theme-option.active { border-color:#ffd94a; background:rgba(255,217,74,.12); color:#ffd94a; }
+  .swatch { width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,.4); }
+  .howto { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; font-size:13px; line-height:1.45; }
+  .howto b { color:#fff; }
+  kbd { display:inline-block; padding:1px 7px; border-radius:5px; border:1px solid rgba(255,255,255,.3); border-bottom-width:3px; background:rgba(255,255,255,.08); font:bold 11px Arial, sans-serif; color:#fff; }
+  .milestones { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.45; }
+  .milestones .pts { display:inline-block; min-width:34px; text-align:center; margin-right:8px; padding:2px 4px; border-radius:6px; background:rgba(255,217,74,.15); border:1px solid rgba(255,217,74,.4); color:#ffd94a; font-weight:bold; }
+  .milestones .pro .pts { background:rgba(255,68,68,.15); border-color:rgba(255,68,68,.5); color:#ff8c7a; }
+  .panel p { margin:0; font-size:13px; line-height:1.55; color:#c3d2dc; }
+  .panel p + p { margin-top:8px; }
+  .stage-hint { font-size:12px; color:#9fb4c2; text-align:center; }
+  .portal-footer { text-align:center; font-size:12px; color:#7d93a2; }
+  .portal-footer a { color:#9fb4c2; }
+  @media (max-width:1023px){
+    .layout { display:flex; flex-direction:column; align-items:stretch; }
+    .stage-col { order:-1; }
+    .panel-col { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); align-items:start; }
+  }
+  canvas { display:block; background:#70c5ce; border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.65), 0 0 0 4px rgba(255,255,255,.07); width:480px; max-width:min(96vw, calc(92vh * 0.75)); max-height:92vh; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  /* fixed top hint hidden on the portal page: the header + How to Play
+     panel already cover it, and it overlapped the title */
+  #hint { display:none; }
 </style>
 </head>
 <body>
-<canvas id="game" width="480" height="640"></canvas>
+<div class="portal">
+  <header class="portal-header">
+    <h1>📦 BOXY BIRD</h1>
+    <p>A Flappy Bird clone where the bird is a cardboard box with an Amazon smile</p>
+  </header>
+  <div class="layout">
+    <aside class="panel-col">
+      <section class="panel" aria-label="Player stats">
+        <h2>Player Stats</h2>
+        <div class="stats">
+          <div class="stat"><span class="label">Score</span><span class="value" id="statScore">0</span></div>
+          <div class="stat"><span class="label">Best</span><span class="value" id="statBest">0</span></div>
+          <div class="stat"><span class="label">Mode</span><span class="value" id="statMode">EASY</span></div>
+          <div class="stat"><span class="label">Pro</span><span class="value" id="statPro">★</span></div>
+        </div>
+        <div class="status-row"><span>STATUS</span><span id="statusLabel">READY</span></div>
+        <button type="button" id="playBtn" class="portal-btn">PLAY NOW</button>
+      </section>
+      <section class="panel" aria-label="Settings">
+        <h2>Theme</h2>
+        <div id="themeList"></div>
+        <button type="button" id="soundToggle" class="portal-btn secondary">SOUND: ON</button>
+      </section>
+    </aside>
+    <main class="stage-col">
+      <canvas id="game" width="480" height="640"></canvas>
+      <div class="stage-hint">Click / tap or press Space to flap · Escape returns to the menu</div>
+    </main>
+    <aside class="panel-col">
+      <section class="panel" aria-label="How to play">
+        <h2>How to Play</h2>
+        <ul class="howto">
+          <li><b>Flap</b> — click, tap, or press <kbd>Space</kbd> / <kbd>↑</kbd> / <kbd>W</kbd></li>
+          <li><b>Score</b> — deliver the box through each pipe gap: +1 point</li>
+          <li><b>Crash</b> — touching a pipe or the ground ends the run</li>
+          <li><b>Replay</b> — after game over, click or press <kbd>Space</kbd></li>
+          <li><b>Menu</b> — press <kbd>Esc</kbd> to return to the splash screen</li>
+          <li><b>Auto-pause</b> — switching tabs pauses the run; click to resume</li>
+        </ul>
+      </section>
+      <section class="panel" aria-label="Milestones and pro mode">
+        <h2>Milestones &amp; PRO</h2>
+        <ul class="milestones">
+          <li><span class="pts">10</span> Confetti burst + fanfare</li>
+          <li class="pro"><span class="pts">25</span> <b>PRO MODE</b> — pipes speed up!</li>
+          <li><span class="pts">50</span> Legend status 🏆 — keep the run alive</li>
+        </ul>
+      </section>
+      <section class="panel" aria-label="About the game">
+        <h2>About</h2>
+        <p>Boxy Bird starts in <b>easy mode</b>: a forgiving hitbox, a generous pipe gap and low gravity make it approachable while still rewarding timing.</p>
+        <p>Plain HTML5 Canvas + Web Audio — no frameworks, no asset files. Every graphic is drawn and every sound synthesized in code.</p>
+      </section>
+    </aside>
+  </div>
+  <footer class="portal-footer">Built with HTML5 Canvas &amp; Web Audio · <a href="https://github.com/mehfuzh/boxy-bird" rel="noopener">source on GitHub</a> · Apache-2.0</footer>
+</div>
 <div id="hint"></div>
 <script>
 "use strict";
@@ -85,6 +183,25 @@ function pipeGapBounds(height, safeTop){
   const minTop = 70 + safeTop;
   return { minTop, maxTop: height - GROUND_H - PIPE_GAP - 70 };
 }
+// ---- themes (issue #32) — mirrors src/rules.js ----
+function isThemeName(name, names){
+  return names.includes(name);
+}
+// next theme in the cycle; unknown current names wrap back to the first
+function nextThemeName(current, names){
+  return names[(names.indexOf(current) + 1) % names.length];
+}
+// season → theme for a first visit (no stored choice). Uses the date's
+// LOCAL month, i.e. the player's own timezone via `new Date()`:
+// Nov–Feb winter · Mar–May default (spring) · Jun–Aug summer · Sep–Oct fall.
+// Halloween stays a manual pick in the cycle. Mirrors src/rules.js.
+function seasonalThemeName(date){
+  const m = date.getMonth(); // 0 = January, local time
+  if (m >= 10 || m <= 1) return 'winter';
+  if (m <= 4) return 'default';
+  if (m <= 7) return 'summer';
+  return 'fall';
+}
 
 // ---- Theme palettes ----
 const THEMES = {
@@ -108,6 +225,46 @@ const THEMES = {
     proCardText:'#c0392b',
     replayText:'#7a5c2e',
   },
+  summer: {
+    skyTop:'#38a3e8', skyBot:'#ffe9a0',
+    cloud:'rgba(255,255,255,0.9)',
+    pipeMain:'#f2a93b', pipeHi:'#ffd06e', pipeBorder:'#9c5a10',
+    groundBase:'#f7e08a', groundTop:'#ffd94a', groundAccent:'#f0b429',
+    groundDiag:'rgba(220,180,80,0.55)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#fffbe9', cardBorder:'#9c5a10', cardText:'#7a4a0a',
+    cardTop:'#fffdf2', cardBot:'#ffe9a0', cardEdge:'#d9a94e',
+    titleColor:'#ffd94a', titleShadow:'#7a4a0a',
+    btnFill:'#fffbe9', btnBorder:'#9c5a10', btnText:'#7a4a0a',
+    btnTop:'#fffdf2', btnBot:'#ffe9a0', btnEdge:'#d9a94e',
+    scoreFill:'#fff', scoreStroke:'#7a4a0a',
+    proFill:'#ff4444', proStroke:'#7a4a0a',
+    overlay:'rgba(50,30,0,0.35)',
+    hintStroke:'rgba(122,74,10,.85)',
+    creditColor:'rgba(122,74,10,0.55)',
+    proCardText:'#c0392b',
+    replayText:'#9c6a1e',
+  },
+  fall: {
+    skyTop:'#e8944a', skyBot:'#f7d9a8',
+    cloud:'rgba(255,240,220,0.8)',
+    pipeMain:'#a8552a', pipeHi:'#c97b42', pipeBorder:'#5c2e10',
+    groundBase:'#c98d4e', groundTop:'#d97b29', groundAccent:'#b85c1e',
+    groundDiag:'rgba(160,100,50,0.55)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#fff4e3', cardBorder:'#5c2e10', cardText:'#5c2e10',
+    cardTop:'#fffaf0', cardBot:'#f2d9b0', cardEdge:'#c9a06a',
+    titleColor:'#f2b263', titleShadow:'#5c2e10',
+    btnFill:'#fff4e3', btnBorder:'#5c2e10', btnText:'#5c2e10',
+    btnTop:'#fffaf0', btnBot:'#f2d9b0', btnEdge:'#c9a06a',
+    scoreFill:'#fff', scoreStroke:'#5c2e10',
+    proFill:'#ffd94a', proStroke:'#5c2e10',
+    overlay:'rgba(40,20,5,0.4)',
+    hintStroke:'rgba(92,46,16,.85)',
+    creditColor:'rgba(92,46,16,0.55)',
+    proCardText:'#c0392b',
+    replayText:'#8a5a2e',
+  },
   halloween: {
     skyTop:'#1a0a2e', skyBot:'#2d1b4e',
     cloud:'rgba(120,90,160,0.4)',
@@ -127,6 +284,26 @@ const THEMES = {
     creditColor:'rgba(255,140,0,0.55)',
     proCardText:'#ff6b6b',
     replayText:'#c9a0dc',
+  },
+  winter: {
+    skyTop:'#7fb2d9', skyBot:'#d6ecf7',
+    cloud:'rgba(255,255,255,0.95)',
+    pipeMain:'#4a90c2', pipeHi:'#8fc3e8', pipeBorder:'#1e4e79',
+    groundBase:'#eef4f8', groundTop:'#ffffff', groundAccent:'#c9dcea',
+    groundDiag:'rgba(180,205,225,0.6)',
+    boxBody:'#D9A15E', boxBorder:'#8a5a24', boxSeam:'#c99022',
+    cardBg:'#f4fafe', cardBorder:'#1e4e79', cardText:'#1e4e79',
+    cardTop:'#ffffff', cardBot:'#d6ecf7', cardEdge:'#9db8cc',
+    titleColor:'#bfe0f5', titleShadow:'#1e4e79',
+    btnFill:'#f4fafe', btnBorder:'#1e4e79', btnText:'#1e4e79',
+    btnTop:'#ffffff', btnBot:'#d6ecf7', btnEdge:'#9db8cc',
+    scoreFill:'#fff', scoreStroke:'#1e4e79',
+    proFill:'#ffd94a', proStroke:'#1e4e79',
+    overlay:'rgba(10,25,45,0.4)',
+    hintStroke:'rgba(30,78,121,.85)',
+    creditColor:'rgba(30,78,121,0.55)',
+    proCardText:'#c0392b',
+    replayText:'#4a6f8a',
   }
 };
 
@@ -161,7 +338,10 @@ const SafeStorage = (() => {
 
 let state, box, pipes, score, frames, groundX, clouds, deadTimer, flash, particles = [];
 let best = +(SafeStorage.get('boxyBest') || 0);
-let theme = SafeStorage.get('boxyTheme') || 'default';
+// validate on load: unknown/stale stored values fall back to the season
+// for the player's local timezone (winter in Dec–Feb, etc.)
+let theme = isThemeName(SafeStorage.get('boxyTheme'), Object.keys(THEMES))
+  ? SafeStorage.get('boxyTheme') : seasonalThemeName(new Date());
 let proMode = false;
 let paused = false; // auto-pause on tab/window focus loss (issue #28)
 
@@ -195,8 +375,9 @@ function updateParticles(){
   }
 }
 
-function toggleTheme(){
-  theme = theme === 'default' ? 'halloween' : 'default';
+// cycle through every palette in THEMES (issue #32)
+function cycleTheme(){
+  theme = nextThemeName(theme, Object.keys(THEMES));
   SafeStorage.set('boxyTheme', theme);
 }
 
@@ -267,7 +448,7 @@ canvas.addEventListener('pointerdown', e => {
     ensureAudio();
     const by = sy - SPLASH_DY; // splash is drawn shifted by SPLASH_DY
     if (inBtn(NEWGAME_BTN, sx, by)) { state='start'; sndFlap(); return; }
-    if (inBtn(THEME_BTN, sx, by)) { toggleTheme(); sndFlap(); return; }
+    if (inBtn(THEME_BTN, sx, by)) { cycleTheme(); sndFlap(); return; }
     if (inBtn(SOUND_BTN, sx, by)) { sndOn = !sndOn; SafeStorage.set('boxySound', sndOn ? 'on' : 'off'); return; }
     return;
   }
@@ -715,6 +896,67 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 reset(); state='splash'; requestAnimationFrame(loop);
+
+// ---- portal chrome: info panels around the game (web only) ----
+(function(){
+  const $ = id => document.getElementById(id);
+  const statScore = $('statScore');
+  if (!statScore) return; // no portal chrome (bare canvas)
+  const statBest = $('statBest'), statPro = $('statPro'), statMode = $('statMode'),
+        statusLabel = $('statusLabel');
+  const themeList = $('themeList'), soundBtn = $('soundToggle'), playBtn = $('playBtn');
+
+  const themeBtns = {};
+  if (themeList){
+    // one button per palette — new themes in THEMES join automatically
+    for (const name of Object.keys(THEMES)){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'theme-option';
+      b.dataset.theme = name;
+        const sw = document.createElement('span');
+        sw.className = 'swatch';
+        sw.style.background = THEMES[name].boxBody;
+      b.appendChild(sw);
+      b.appendChild(document.createTextNode(name));
+      b.addEventListener('click', () => { theme = name; SafeStorage.set('boxyTheme', name); paint(); });
+      themeList.appendChild(b);
+      themeBtns[name] = b;
+    }
+  }
+  if (soundBtn) soundBtn.addEventListener('click', () => {
+    sndOn = !sndOn; SafeStorage.set('boxySound', sndOn ? 'on' : 'off'); paint();
+  });
+  if (playBtn) playBtn.addEventListener('click', () => {
+    ensureAudio();
+    if (state === 'splash'){ state = 'start'; sndFlap(); }
+    else flap(); // start / resume / play again, same as tapping the canvas
+  });
+
+  function statusText(){
+    if (paused) return 'PAUSED';
+    if (state === 'play') return proMode ? 'PRO MODE' : 'IN PLAY';
+    if (state === 'dead') return 'GAME OVER';
+    return 'READY';
+  }
+
+  let lastKey = '';
+  function paint(){
+    const key = [score, best, theme, proMode, state, paused, sndOn].join('|');
+    if (key === lastKey) return; // only touch the DOM when something changed
+    lastKey = key;
+    statScore.textContent = score;
+    if (statBest) statBest.textContent = best;
+    if (statPro) statPro.classList.toggle('on', proMode);
+    if (statMode) statMode.textContent = proMode ? 'PRO' : 'EASY';
+    if (statusLabel) statusLabel.textContent = statusText();
+    for (const name in themeBtns) themeBtns[name].classList.toggle('active', name === theme);
+    if (soundBtn) soundBtn.textContent = 'SOUND: ' + (sndOn ? 'ON' : 'OFF');
+    if (playBtn) playBtn.textContent = state === 'play' ? (paused ? 'RESUME' : 'FLAP') : 'PLAY NOW';
+  }
+  setInterval(paint, 150); // cheap poll; writes happen only on change
+  paint();
+})();
 </script>
 </body>
 </html>

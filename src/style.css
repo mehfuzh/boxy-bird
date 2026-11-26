@@ -1,9 +1,59 @@
-html, body { margin:0; padding:0; height:100%; background:radial-gradient(circle at 50% 35%, #2b4250 0%, #14202a 75%); display:flex; align-items:center; justify-content:center; font-family:Arial, sans-serif; overscroll-behavior:none; }
+html, body { margin:0; padding:0; min-height:100%; background:radial-gradient(circle at 50% 35%, #2b4250 0%, #14202a 75%); font-family:Arial, sans-serif; overscroll-behavior:none; }
 /* iOS (Capacitor/WKWebView): keep the canvas clear of the notch / home indicator */
 body { padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing:border-box; }
-canvas { display:block; background:#70c5ce; border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.65), 0 0 0 4px rgba(255,255,255,.07); max-width:96vw; max-height:96vh; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
-#hint { position:fixed; left:0; right:0; top:calc(10px + env(safe-area-inset-top)); text-align:center; color:#fff; font-weight:700; font-size:14px; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.45); }
-/* Native iOS (Capacitor): full-bleed canvas, no card chrome. The class
-   is set on <html> by src/constants.js only when running natively. */
+
+/* ---- portal page: game centered, info panels around it ---- */
+.portal { max-width:1180px; margin:0 auto; padding:22px 16px 40px; display:flex; flex-direction:column; gap:20px; color:#dfe9f0; }
+.portal-header { text-align:center; }
+.portal-header h1 { margin:0; font-size:30px; letter-spacing:3px; color:#f5dd8f; text-shadow:0 3px 0 #3d2b14, 0 6px 18px rgba(0,0,0,.5); }
+.portal-header p { margin:6px 0 0; font-size:14px; color:#9fb4c2; }
+.layout { display:grid; grid-template-columns:250px minmax(0,1fr) 250px; gap:20px; align-items:start; }
+.stage-col { display:flex; flex-direction:column; align-items:center; gap:10px; }
+.panel-col { display:flex; flex-direction:column; gap:20px; }
+.panel { background:rgba(18,30,40,.72); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:16px 18px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+.panel h2 { margin:0 0 12px; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#f5dd8f; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stat { background:rgba(255,255,255,.05); border-radius:10px; padding:10px 8px; text-align:center; }
+.stat .label { display:block; font-size:10px; letter-spacing:1.5px; color:#9fb4c2; text-transform:uppercase; }
+.stat .value { display:block; margin-top:2px; font-size:22px; font-weight:bold; color:#fff; }
+#statPro { opacity:.25; }
+#statPro.on { opacity:1; color:#ffd94a; text-shadow:0 0 12px rgba(255,217,74,.55); }
+.status-row { display:flex; justify-content:space-between; margin-top:12px; font-size:12px; letter-spacing:1px; color:#9fb4c2; }
+#statusLabel { font-weight:bold; color:#96D955; }
+.portal-btn { width:100%; margin-top:12px; padding:12px; border-radius:10px; border:2px solid #3d2b14; background:linear-gradient(#fffdf2,#f2e3b6); color:#3d2b14; font:bold 15px Arial, sans-serif; letter-spacing:1px; cursor:pointer; box-shadow:0 4px 0 #b9a06a; }
+.portal-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #b9a06a; }
+.portal-btn.secondary { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.2); color:#dfe9f0; box-shadow:0 4px 0 rgba(0,0,0,.4); font-size:13px; }
+#themeList { display:flex; flex-direction:column; gap:8px; }
+.theme-option { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.05); color:#dfe9f0; font:600 13px Arial, sans-serif; text-transform:capitalize; cursor:pointer; }
+.theme-option.active { border-color:#ffd94a; background:rgba(255,217,74,.12); color:#ffd94a; }
+.swatch { width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,.4); }
+.howto { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; font-size:13px; line-height:1.45; }
+.howto b { color:#fff; }
+kbd { display:inline-block; padding:1px 7px; border-radius:5px; border:1px solid rgba(255,255,255,.3); border-bottom-width:3px; background:rgba(255,255,255,.08); font:bold 11px Arial, sans-serif; color:#fff; }
+.milestones { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.45; }
+.milestones .pts { display:inline-block; min-width:34px; text-align:center; margin-right:8px; padding:2px 4px; border-radius:6px; background:rgba(255,217,74,.15); border:1px solid rgba(255,217,74,.4); color:#ffd94a; font-weight:bold; }
+.milestones .pro .pts { background:rgba(255,68,68,.15); border-color:rgba(255,68,68,.5); color:#ff8c7a; }
+.panel p { margin:0; font-size:13px; line-height:1.55; color:#c3d2dc; }
+.panel p + p { margin-top:8px; }
+.portal-footer { text-align:center; font-size:12px; color:#7d93a2; }
+.portal-footer a { color:#9fb4c2; }
+/* narrow screens: game first, side panels stack underneath it */
+@media (max-width:1023px){
+  .layout { display:flex; flex-direction:column; align-items:stretch; }
+  .stage-col { order:-1; }
+  .panel-col { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); align-items:start; }
+}
+canvas { display:block; background:#70c5ce; border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.65), 0 0 0 4px rgba(255,255,255,.07); width:480px; max-width:min(96vw, calc(92vh * 0.75)); max-height:92vh; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+.stage-hint { font-size:12px; color:#9fb4c2; text-align:center; }
+/* the fixed top hint would clutter the portal header — web uses the
+   in-canvas prompts + How to Play panel instead; native iOS keeps it */
+#hint { display:none; position:fixed; left:0; right:0; top:calc(10px + env(safe-area-inset-top)); text-align:center; color:#fff; font-weight:700; font-size:14px; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.45); }
+.native #hint { display:block; }
+/* Native iOS (Capacitor): full-bleed canvas, no portal chrome at all.
+   The class is set on <html> by src/constants.js only when running natively. */
 .native body { padding:0; background:#14202a; }
+.native .portal { display:block; max-width:none; margin:0; padding:0; }
+.native .portal-header, .native .panel-col, .native .portal-footer,
+.native .stage-col .stage-hint { display:none; }
+.native .layout { display:block; }
 .native canvas { width:100vw; height:100vh; height:100dvh; max-width:none; max-height:none; border-radius:0; box-shadow:none; }
