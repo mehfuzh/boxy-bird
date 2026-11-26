@@ -2,9 +2,9 @@
 // Loaded before store.js/world.js so the stored theme can be validated
 // against Object.keys(THEMES) at load time. Adding a palette here
 // automatically joins the THEME button cycle (issue #32). With no stored
-// choice the game picks the palette for the player's current season/local
-// timezone (seasonalThemeName in rules.js): default = spring, plus summer,
-// fall, winter; halloween is a manual pick.
+// choice the game picks the palette for the player's current season, from
+// their local timezone and hemisphere (seasonalThemeName in rules.js):
+// default = spring, plus summer, fall, winter; halloween is a manual pick.
 const THEMES = {
   default: {
     skyTop:'#4ec0ca', skyBot:'#9adfe4',

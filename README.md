@@ -40,15 +40,15 @@ Easy mode doesn't stay easy forever — the game celebrates progress and then ra
 
 Five full colour palettes live in `THEMES` (`src/themes.js`); every drawn element — sky, clouds, pipes, ground, cards, buttons, title, score, PRO badge — is themed:
 
-| Theme       | Look                                                          | Season (auto-pick) |
-|-------------|---------------------------------------------------------------|--------------------|
-| `default`   | Classic teal sky, green pipes, sandy ground                   | Mar–May (spring)   |
-| `summer`    | Bright blue sky into a golden horizon, amber pipes, sunny sand | Jun–Aug           |
-| `fall`      | Warm amber sky, rust-brown pipes, autumn-leaf ground          | Sep–Oct            |
-| `halloween` | Deep purple night sky, orange pipes, dark violet ground       | manual pick        |
-| `winter`    | Icy blue sky, frosted blue pipes, snow-dusted white ground    | Nov–Feb            |
+| Theme       | Look                                                          | Season (north) | Season (south) |
+|-------------|---------------------------------------------------------------|----------------|----------------|
+| `default`   | Classic teal sky, green pipes, sandy ground                   | Mar–May (spring) | Sep–Oct (spring) |
+| `summer`    | Bright blue sky into a golden horizon, amber pipes, sunny sand | Jun–Aug        | Nov–Feb        |
+| `fall`      | Warm amber sky, rust-brown pipes, autumn-leaf ground          | Sep–Oct        | Mar–May        |
+| `halloween` | Deep purple night sky, orange pipes, dark violet ground       | manual pick    | manual pick    |
+| `winter`    | Icy blue sky, frosted blue pipes, snow-dusted white ground    | Nov–Feb        | Jun–Aug        |
 
-With no stored choice, the game boots in the palette for the current season in the **player's local timezone** (`seasonalThemeName(new Date())` in `src/rules.js`) — e.g. winter in late November. The THEME button on the splash screen and the portal's Theme panel cycle/select through them (`cycleTheme()` in `src/world.js`, driven by `Object.keys(THEMES)` — new palettes join automatically); a manual choice persists across sessions and always wins over the seasonal pick, and unknown stored values fall back to the season on load.
+With no stored choice, the game boots in the palette for the current season in the **player's local timezone and hemisphere** (`seasonalThemeName(new Date())` in `src/rules.js`; the hemisphere comes from the IANA zone via `Intl`, see `isSouthernHemisphereZone`) — e.g. winter in late November in Europe, but **summer in South America or Australia**. The THEME button on the splash screen and the portal's Theme panel cycle/select through them (`cycleTheme()` in `src/world.js`, driven by `Object.keys(THEMES)` — new palettes join automatically); a manual choice persists across sessions and always wins over the seasonal pick, and unknown stored values fall back to the season on load.
 
 ## 💾 Persistence
 

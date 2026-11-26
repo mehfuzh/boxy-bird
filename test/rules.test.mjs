@@ -316,7 +316,7 @@ test('cycleTheme walks every theme in order, wraps, and persists each choice', (
 
 test('Store.theme falls back to the season for unknown or missing stored values', () => {
   const sim = loadSim();
-  const seasonal = sim.run('seasonalThemeName(new Date())'); // player's local month
+  const seasonal = sim.run('seasonalThemeName(new Date(), localTimeZone())'); // player's month + hemisphere
   assert.equal(sim.run('Store.theme'), seasonal); // nothing stored yet
   sim.run(`SafeStorage.set('boxyTheme', 'bogus')`);
   assert.equal(sim.run('Store.theme'), seasonal);
@@ -327,12 +327,46 @@ test('Store.theme falls back to the season for unknown or missing stored values'
 test('seasonalThemeName maps the local month to a season palette', () => {
   const q = loadRules();
   // fixed dates → deterministic, regardless of when the suite runs.
-  // month arg is 0-based, in the date's LOCAL timezone.
-  const seasonAt = month => q(`seasonalThemeName(new Date(2026, ${month}, 15))`);
+  // month arg is 0-based, in the date's LOCAL timezone; pin a northern
+  // zone so the mapping doesn't depend on the machine's hemisphere.
+  const seasonAt = month => q(`seasonalThemeName(new Date(2026, ${month}, 15), 'America/New_York')`);
   for (const m of [10, 11, 0, 1]) assert.equal(seasonAt(m), 'winter');
   for (const m of [2, 3, 4]) assert.equal(seasonAt(m), 'default');
   for (const m of [5, 6, 7]) assert.equal(seasonAt(m), 'summer');
   for (const m of [8, 9]) assert.equal(seasonAt(m), 'fall');
-  // late November boots winter, as requested for this time of year
-  assert.equal(q(`seasonalThemeName(new Date(2026, 10, 25))`), 'winter');
+  // late November boots winter in the northern hemisphere
+  assert.equal(q(`seasonalThemeName(new Date(2026, 10, 25), 'Europe/London')`), 'winter');
+});
+
+test('isSouthernHemisphereZone recognises southern zones, not northern ones', () => {
+  const q = loadRules();
+  for (const tz of ['America/Sao_Paulo', 'America/Argentina/Buenos_Aires', 'America/Santiago',
+                    'America/Montevideo', 'Australia/Sydney', 'Pacific/Auckland',
+                    'Africa/Johannesburg', 'Antarctica/McMurdo'])
+    assert.equal(q(`isSouthernHemisphereZone('${tz}')`), true, tz);
+  for (const tz of ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'America/Bogota',
+                    'America/Caracas', 'America/Panama', 'Africa/Cairo', '', undefined])
+    assert.equal(q(`isSouthernHemisphereZone(${tz === undefined ? 'undefined' : `'${tz}'`})`), false, String(tz));
+});
+
+test('southern hemisphere: seasons shift six months — summer in South America in November', () => {
+  const q = loadRules();
+  const southAt = (month, tz) => q(`seasonalThemeName(new Date(2026, ${month}, 15), '${tz}')`);
+  for (const tz of ['America/Sao_Paulo', 'America/Argentina/Buenos_Aires', 'Australia/Sydney']) {
+    for (const m of [10, 11, 0, 1]) assert.equal(southAt(m, tz), 'summer', `${tz} month ${m}`);
+    for (const m of [5, 6, 7]) assert.equal(southAt(m, tz), 'winter', `${tz} month ${m}`);
+    for (const m of [8, 9]) assert.equal(southAt(m, tz), 'default', `${tz} month ${m}`); // spring
+    for (const m of [2, 3, 4]) assert.equal(southAt(m, tz), 'fall', `${tz} month ${m}`);
+  }
+  // the reported case: late November in South America boots summer
+  assert.equal(q(`seasonalThemeName(new Date(2026, 10, 25), 'America/Sao_Paulo')`), 'summer');
+  // unknown/missing zone keeps the northern mapping (safe default)
+  assert.equal(q(`seasonalThemeName(new Date(2026, 10, 25), '')`), 'winter');
+});
+
+test('localTimeZone returns the runtime IANA zone (or empty string)', () => {
+  const q = loadRules();
+  const tz = q('localTimeZone()');
+  assert.equal(typeof tz, 'string');
+  assert.equal(tz, Intl.DateTimeFormat().resolvedOptions().timeZone || '');
 });

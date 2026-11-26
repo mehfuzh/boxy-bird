@@ -1,8 +1,8 @@
 // ---- persistence (SafeStorage: localStorage with in-memory fallback) ----
 // A stored theme is validated against the palettes in themes.js on read;
 // unknown/stale values — or no stored choice yet — fall back to the season
-// for the player's local timezone (seasonalThemeName in rules.js),
-// e.g. winter in late November.
+// for the player's local timezone AND hemisphere (seasonalThemeName in
+// rules.js): winter in late November up north, summer in South America.
 const Store = {
   get best(){ return +(SafeStorage.get('boxyBest') || 0); },
   set best(v){ SafeStorage.set('boxyBest', v); },
